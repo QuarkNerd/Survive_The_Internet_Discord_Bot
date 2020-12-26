@@ -7,6 +7,12 @@ DotEnv.config();
 const TOKEN = process.env.TOKEN;
 const bot = new Discord.Client();
 
+enum SignUpEnd {
+  Started = "start",
+  Cancelled = "cancel",
+  Time = "time",
+}
+
 let game: any = null;
 let players: {
   [user_id: string]: Discord.User;
@@ -78,6 +84,27 @@ async function new_game_command(msg: Discord.Message): Promise<any> {
       if (reaction.emoji.name === "👍") {
         msg.channel.send(get_leaving_message(user.username));
         delete players[user.id];
+      }
+    });
+
+    collector.on("end", (_, reason) => {
+      switch (reason) {
+        case SignUpEnd.Started:
+          // Send players to games
+          msg.channel.send("The game will start now");
+          break;
+        case SignUpEnd.Cancelled:
+          game = null;
+          msg.channel.send(
+            "The game was cancelled because someone clicked the ❌"
+          );
+          break;
+        case SignUpEnd.Time:
+          game = null;
+          msg.channel.send("The game was cancelled because time ran out");
+          break;
+        default:
+          console.error("Unexpected reason to end collector: ", reason);
       }
     });
   }
