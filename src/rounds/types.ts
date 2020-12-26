@@ -1,6 +1,6 @@
 interface Prompt {
-  id: string;
-  message: string;
+  id: number;
+  prompt: string;
   default: string;
 }
 
