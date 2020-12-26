@@ -1,6 +1,8 @@
 import Discord from 'discord.js';
 import DotEnv from 'dotenv';
 
+import { get_joining_message, get_leaving_message } from './messages';
+
 DotEnv.config();
 const TOKEN = process.env.TOKEN;
 const bot = new Discord.Client();
@@ -63,18 +65,20 @@ async function new_game_command(msg: Discord.Message): Promise<any> {
             collector.stop("Game started");
             break;
           case '👍':
+            msg.channel.send(get_joining_message(user.username));
             players[user.id] = user;
             break;
           case '❌':
             collector.stop("Game cancelled");
             break;
-        }
-      });
-
-      collector.on('remove', (reaction, user) => {
-        console.log(`Collected ${reaction.emoji.name} from ${user.tag}`);
-        
+          }
+          });
+          
+        collector.on('remove', (reaction, user) => {
+          console.log(`Collected ${reaction.emoji.name} from ${user.tag}`);
+            
         if (reaction.emoji.name === '👍') {
+          msg.channel.send(get_leaving_message(user.username));
           delete players[user.id];
         }
       });
