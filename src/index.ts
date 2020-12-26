@@ -2,21 +2,20 @@ import Discord from "discord.js";
 import DotEnv from "dotenv";
 
 import { get_joining_message, get_leaving_message } from "./messages";
+import Game from "./game";
 
 DotEnv.config();
 const TOKEN = process.env.TOKEN;
 const bot = new Discord.Client();
 
 enum SignUpEnd {
-  Started = "start",
+  GameStarted = "start",
   Cancelled = "cancel",
   Time = "time",
 }
 
-let game: any = null;
-let players: {
-  [user_id: string]: Discord.User;
-};
+let game: Game | null;
+let players: Discord.User[] = [];
 
 bot.login(TOKEN);
 
@@ -50,7 +49,7 @@ async function new_game_command(msg: Discord.Message): Promise<any> {
     msg.channel.send("I can't play multiple games at the same time");
     return;
   } else {
-    game = 1;
+    game = new Game();
     let message = await msg.channel.send("Let's go");
     await message.react("✔");
     await message.react("👍");
@@ -66,14 +65,14 @@ async function new_game_command(msg: Discord.Message): Promise<any> {
 
       switch (reaction.emoji.name) {
         case "✔":
-          collector.stop("Game started");
+          collector.stop(SignUpEnd.GameStarted);
           break;
         case "👍":
           msg.channel.send(get_joining_message(user.username));
-          players[user.id] = user;
+          players.push(user);
           break;
         case "❌":
-          collector.stop("Game cancelled");
+          collector.stop(SignUpEnd.Cancelled);
           break;
       }
     });
@@ -83,14 +82,14 @@ async function new_game_command(msg: Discord.Message): Promise<any> {
 
       if (reaction.emoji.name === "👍") {
         msg.channel.send(get_leaving_message(user.username));
-        delete players[user.id];
+        players = players.filter((u) => u.id !== user.id);
       }
     });
 
     collector.on("end", (_, reason) => {
       switch (reason) {
-        case SignUpEnd.Started:
-          // Send players to games
+        case SignUpEnd.GameStarted:
+          game?.start(players);
           msg.channel.send("The game will start now");
           break;
         case SignUpEnd.Cancelled:
