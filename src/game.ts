@@ -10,8 +10,12 @@ class Game {
   players: {
     [user_id: string]: Player;
   } = {};
+  num_rounds: number;
 
-  constructor() {}
+
+  constructor() {
+      this.num_rounds = 5;
+  }
 
   start(players: Discord.User[]) {
     players.forEach((play) => {
@@ -21,7 +25,7 @@ class Game {
       };
     });
 
-    console.log(this.players);
+    
   }
 }
 

@@ -90,7 +90,9 @@ async function new_game_command(msg: Discord.Message): Promise<any> {
       switch (reason) {
         case SignUpEnd.GameStarted:
           game?.start(players);
-          msg.channel.send("The game will start now");
+          msg.channel.send(
+            "The game will start now. Make sure server members can DM you"
+          );
           break;
         case SignUpEnd.Cancelled:
           game = null;
