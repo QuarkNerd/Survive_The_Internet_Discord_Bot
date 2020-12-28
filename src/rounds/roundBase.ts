@@ -13,20 +13,20 @@ interface Round {
   Name: string;
   Description: string;
   TwisterPrompt: string;
-  GetTwisteePrompts(num: number): Prompt[];
-  VerifyTwisteeText(prompt_id: number, twisteeText: string): Verification;
+  GetBuffoonPrompts(num: number): Prompt[];
+  VerifyBuffoonText(prompt_id: number, buffoonText: string): Verification;
   VerifyTwisterText(twisterText: string): Verification;
   GetResult(
-    twistee_name: string,
+    buffoon_name: string,
     prompt_id: number,
-    twisteeText: string,
+    buffoonText: string,
     twisterText: string
   ): string;
 }
 
 const defaultValues = {
-  VerifyTwisteeText: function (_: number, twisteeText: string): Verification {
-    if (twisteeText.length < 100) {
+  VerifyBuffoonText: function (_: number, buffoonText: string): Verification {
+    if (buffoonText.length < 100) {
       return { valid: true };
     } else {
       return { valid: false, detail: "too long" };

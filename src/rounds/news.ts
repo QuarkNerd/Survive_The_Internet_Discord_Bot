@@ -7,15 +7,15 @@ let News: Round = {
   Name: "News",
   Description: "Answer the prompt",
   TwisterPrompt: "Would look awful under the headline",
-  GetTwisteePrompts: (num: number) => {
+  GetBuffoonPrompts: (num: number) => {
     return get_subsection_random_order(Prompts, num);
   },
   GetResult: (
-    twistee_name: string,
+    buffoon_name: string,
     _: number,
-    twisteeText: string,
+    buffoonText: string,
     twisterText: string
-  ) => `${twisterText} \n\nCOMMENTS \n${twistee_name}: ${twisteeText}`,
+  ) => `${twisterText} \n\nCOMMENTS \n${buffoon_name}: ${buffoonText}`,
 };
 
 export default News;

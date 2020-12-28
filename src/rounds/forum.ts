@@ -7,15 +7,15 @@ let Forum: Round = {
   Name: "Social Network",
   Description: "Answer the prompt",
   TwisterPrompt: "Would look ridiculous as a comment to the question",
-  GetTwisteePrompts: (num: number) => {
+  GetBuffoonPrompts: (num: number) => {
     return get_subsection_random_order(Prompts, num);
   },
   GetResult: (
-    twistee_name: string,
+    buffoon_name: string,
     _: number,
-    twisteeText: string,
+    buffoonText: string,
     twisterText: string
-  ) => `${twisterText} \n\nAnswers \n${twistee_name}: ${twisteeText}`,
+  ) => `${twisterText} \n\nAnswers \n${buffoon_name}: ${buffoonText}`,
 };
 
 export default Forum;

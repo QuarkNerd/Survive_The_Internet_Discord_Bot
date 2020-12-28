@@ -45,7 +45,7 @@ class Game {
     //PARET ONE
     //for each elelemnt choose coorect prompt, send and make mesage collector
     // do verifcation within each collector seperatl;ey
-    // At end return with object comntating id and twistee words (default or not)
+    // At end return with object comntating id and buffoon words (default or not)
 
     //pRT two
     // pass to twister, do the same

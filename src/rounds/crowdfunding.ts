@@ -8,16 +8,16 @@ let Crowdfunding: Round = {
   Description: "Answer the prompt",
   TwisterPrompt:
     "Would look terrible if it was in response to campaign titled:",
-  GetTwisteePrompts: (num: number) => {
+  GetBuffoonPrompts: (num: number) => {
     return get_subsection_random_order(Prompts, num);
   },
   GetResult: (
-    twistee_name: string,
+    buffoon_name: string,
     _: number,
-    twisteeText: string,
+    buffoonText: string,
     twisterText: string
   ) =>
-    `FUND ME PLEASE \n #${twisterText} \n\n\ ${twistee_name}: ${twisteeText}`,
+    `FUND ME PLEASE \n #${twisterText} \n\n\ ${buffoon_name}: ${buffoonText}`,
 };
 
 export default Crowdfunding;

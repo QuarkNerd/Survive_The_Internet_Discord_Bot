@@ -7,15 +7,15 @@ let SocialMedia: Round = {
   Name: "Social Media",
   Description: "Answer the prompt",
   TwisterPrompt: "Would look ridiculous with the hashtag:",
-  GetTwisteePrompts: (num: number) => {
+  GetBuffoonPrompts: (num: number) => {
     return get_subsection_random_order(Prompts, num);
   },
   GetResult: (
-    twistee_name: string,
+    buffoon_name: string,
     _: number,
-    twisteeText: string,
+    buffoonText: string,
     twisterText: string
-  ) => `${twistee_name}: ${twisteeText} #${twisterText}`,
+  ) => `${buffoon_name}: ${buffoonText} #${twisterText}`,
 };
 
 export default SocialMedia;
