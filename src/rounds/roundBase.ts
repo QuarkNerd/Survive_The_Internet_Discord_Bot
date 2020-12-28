@@ -43,5 +43,5 @@ const defaultValues = {
   },
 };
 
-export { defaultValues };
+export { defaultValues, Prompt, Verification };
 export default Round;

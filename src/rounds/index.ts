@@ -1,4 +1,4 @@
-import Round from "./roundBase";
+import Round, { Prompt, Verification } from "./roundBase";
 
 import CheckIn from "./checkIn";
 import Crowdfunding from "./crowdfunding";
@@ -22,5 +22,5 @@ const possibleRounds = [
   VideoSharing,
 ];
 
-export { possibleRounds };
+export { possibleRounds, Prompt, Verification };
 export default Round;

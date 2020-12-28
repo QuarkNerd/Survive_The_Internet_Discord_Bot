@@ -1,7 +1,7 @@
 import Discord from "discord.js";
 import DotEnv from "dotenv";
 
-import Round, { possibleRounds } from "./rounds";
+import Round, { Prompt, possibleRounds, Verification } from "./rounds";
 import { get_subsection_random_order } from "./utilities";
 
 interface Player {
@@ -13,6 +13,12 @@ interface Play {
   buffoonId: string;
   twisterId: string;
   buffoonText?: string;
+}
+
+interface TextRequest {
+  userId: string;
+  user: Discord.User;
+  prompt: Prompt;
 }
 
 class Game {
@@ -67,65 +73,76 @@ class Game {
     // then send voting options to each player // When playtesting discuss how to improve this
   }
 
-  run_part_one(plays: Play[], round: Round): Promise<Play[]> {
-    let resolveCallback;
-    let completedPlays: Play[] = [];
-    const onPlayComplete = (play: Play) => {
-      completedPlays.push(play);
+  async run_part_one(plays: Play[], round: Round): Promise<Play[]> {
+    const promptList = round.get_buffoon_prompts(plays.length);
+    const textRequestList: TextRequest[] = promptList.map((x, i) => ({
+      userId: plays[i].buffoonId,
+      user: this.players[plays[i].buffoonId].botUser,
+      prompt: x,
+    }));
 
-      if (completedPlays.length === plays.length) {
-        resolveCallback(completedPlays);
+    const texts = await this.run_part(
+      textRequestList,
+      round.verify_buffoon_text
+    );
+
+    return plays.map((x) => ({
+      ...x,
+      buffoonText: texts[x.buffoonId],
+    }));
+  }
+
+  run_part(
+    textRequestList: TextRequest[],
+    verify: (prompt_id: number, text: string) => Verification
+  ): Promise<{ [userId: string]: string }> {
+    let resolveCallback;
+    let returnedText: { [userId: string]: string } = {};
+    const onValidText = (userId: string, text: string) => {
+      returnedText[userId] = text;
+
+      if (Object.keys(returnedText).length === textRequestList.length) {
+        resolveCallback(returnedText);
       }
     };
 
-    let promptList = round.get_buffoon_prompts(plays.length);
-
-    plays.forEach(async (pl, i) => {
-      let prompt = promptList[i];
-      let player = this.players[pl.buffoonId].botUser;
+    textRequestList.forEach(async (textReq, i) => {
+      const user = textReq.user;
       let responseReceived = false;
 
-      let dmChannel = player.dmChannel
-        ? player.dmChannel
-        : await player.createDM();
+      let dmChannel = user.dmChannel ? user.dmChannel : await user.createDM();
 
-      const filter = (m: Discord.Message) => m.author.id === pl.buffoonId;
+      const filter = (m: Discord.Message) => m.author.id === textReq.userId;
       const collector = dmChannel.createMessageCollector(filter, {
         time: 60000,
       });
-      player.send(prompt.prompt);
+      user.send(textReq.prompt.prompt);
       collector?.on("collect", (m: Discord.Message) => {
-        console.log(`Collected ${m.content}, from ${player.username}`);
+        console.log(`Collected ${m.content}, from ${user.username}`);
 
         if (!responseReceived) {
-          const verification = round.verify_buffoon_text(prompt.id, m.content);
+          const verification = verify(textReq.prompt.id, m.content);
 
           if (verification.valid) {
-            onPlayComplete({
-              ...pl,
-              buffoonText: m.content,
-            });
+            onValidText(textReq.userId, m.content);
             m.react("✔️");
             responseReceived = true;
           } else {
             m.react("❌");
-            player.send(verification.detail);
+            user.send(verification.detail);
           }
         }
       });
 
       collector?.on("end", (_) => {
         if (!responseReceived) {
-          onPlayComplete({
-            ...pl,
-            buffoonText: prompt.default,
-          });
+          onValidText(textReq.userId, textReq.prompt.default);
         }
       });
 
       if (!collector) {
         console.error(
-          `collector is undefined, and playerId is ${player.username}`
+          `collector is undefined, and playerId is ${user.username}`
         );
       }
     });
