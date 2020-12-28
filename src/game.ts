@@ -13,6 +13,7 @@ interface Play {
   buffoonId: string;
   twisterId: string;
   buffoonText?: string;
+  twisterText?: string;
 }
 
 interface TextRequest {
@@ -64,13 +65,8 @@ class Game {
     });
 
     plays = await this.run_part_one(plays, round);
+    plays = await this.run_part_two(plays, round);
     console.log(plays);
-
-    //pRT two
-    // pass to twister, do the same
-    //Part one and two can probably share a function
-    // end up with an array of plays// send overl
-    // then send voting options to each player // When playtesting discuss how to improve this
   }
 
   async run_part_one(plays: Play[], round: Round): Promise<Play[]> {
@@ -89,6 +85,28 @@ class Game {
     return plays.map((x) => ({
       ...x,
       buffoonText: texts[x.buffoonId],
+    }));
+  }
+
+  async run_part_two(plays: Play[], round: Round): Promise<Play[]> {
+    const textRequestList: TextRequest[] = plays.map((play, i) => ({
+      userId: play.twisterId,
+      user: this.players[play.twisterId].botUser,
+      prompt: {
+        id: i,
+        prompt: `${play.buffoonText}\n\n\n${round.twisterPrompt}`,
+        default: "default",
+      },
+    }));
+
+    const texts = await this.run_part(
+      textRequestList,
+      (_: number, text: string) => round.verify_twister_text(text)
+    );
+
+    return plays.map((x) => ({
+      ...x,
+      twisterText: texts[x.twisterId],
     }));
   }
 
