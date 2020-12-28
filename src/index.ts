@@ -49,7 +49,7 @@ async function new_game_command(msg: Discord.Message): Promise<any> {
     msg.channel.send("I can't play multiple games at the same time");
     return;
   } else {
-    game = new Game();
+    game = new Game(msg.channel as Discord.TextChannel);
     let message = await msg.channel.send("Let's go");
     await message.react("✔");
     await message.react("👍");
@@ -78,7 +78,9 @@ async function new_game_command(msg: Discord.Message): Promise<any> {
     });
 
     collector.on("remove", (reaction, user) => {
-      console.log(`Collected ${reaction.emoji.name} from ${user.tag}`);
+      console.log(
+        `Collected removal of ${reaction.emoji.name} from ${user.tag}`
+      );
 
       if (reaction.emoji.name === "👍") {
         msg.channel.send(get_leaving_message(user.username));
@@ -89,10 +91,10 @@ async function new_game_command(msg: Discord.Message): Promise<any> {
     collector.on("end", (_, reason) => {
       switch (reason) {
         case SignUpEnd.GameStarted:
-          game?.start(players);
           msg.channel.send(
             "The game will start now. Make sure server members can DM you"
           );
+          game?.start(players);
           break;
         case SignUpEnd.Cancelled:
           game = null;
