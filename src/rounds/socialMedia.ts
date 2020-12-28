@@ -4,13 +4,13 @@ import { get_subsection_random_order } from "../utilities";
 
 let SocialMedia: Round = {
   ...defaultValues,
-  Name: "Social Media",
-  Description: "Answer the prompt",
-  TwisterPrompt: "Would look ridiculous with the hashtag:",
-  GetBuffoonPrompts: (num: number) => {
+  name: "Social Media",
+  description: "Answer the prompt",
+  twisterPrompt: "Would look ridiculous with the hashtag:",
+  get_buffoon_prompts: (num: number) => {
     return get_subsection_random_order(Prompts, num);
   },
-  GetResult: (
+  get_result: (
     buffoon_name: string,
     _: number,
     buffoonText: string,

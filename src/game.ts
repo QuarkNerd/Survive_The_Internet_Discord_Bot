@@ -14,11 +14,11 @@ class Game {
     [user_id: string]: Player;
   } = {};
   rounds: Round[];
-  main_channel: Discord.TextChannel;
+  mainChannel: Discord.TextChannel;
 
-  constructor(main_channel: Discord.TextChannel) {
+  constructor(mainChannel: Discord.TextChannel) {
     this.rounds = get_subsection_random_order(possibleRounds, 5);
-    this.main_channel = main_channel;
+    this.mainChannel = mainChannel;
   }
 
   start(players: Discord.User[]) {
@@ -37,7 +37,7 @@ class Game {
   }
 
   run_round(round: Round, num: number) {
-    this.main_channel.send(`Round ${num + 1}: ${round.Name}`);
+    this.mainChannel.send(`Round ${num + 1}: ${round.name}`);
     // get random order of ids,
 
     // put in array of objects,

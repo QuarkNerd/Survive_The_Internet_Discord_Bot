@@ -4,14 +4,14 @@ import { get_subsection_random_order } from "../utilities";
 
 let Crowdfunding: Round = {
   ...defaultValues,
-  Name: "Crowdfunding",
-  Description: "Answer the prompt",
-  TwisterPrompt:
+  name: "Crowdfunding",
+  description: "Answer the prompt",
+  twisterPrompt:
     "Would look terrible if it was in response to campaign titled:",
-  GetBuffoonPrompts: (num: number) => {
+  get_buffoon_prompts: (num: number) => {
     return get_subsection_random_order(Prompts, num);
   },
-  GetResult: (
+  get_result: (
     buffoon_name: string,
     _: number,
     buffoonText: string,

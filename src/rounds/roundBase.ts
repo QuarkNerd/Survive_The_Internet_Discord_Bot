@@ -10,13 +10,13 @@ interface Verification {
 }
 
 interface Round {
-  Name: string;
-  Description: string;
-  TwisterPrompt: string;
-  GetBuffoonPrompts(num: number): Prompt[];
-  VerifyBuffoonText(prompt_id: number, buffoonText: string): Verification;
-  VerifyTwisterText(twisterText: string): Verification;
-  GetResult(
+  name: string;
+  description: string;
+  twisterPrompt: string;
+  get_buffoon_prompts(num: number): Prompt[];
+  verify_buffoon_text(prompt_id: number, buffoonText: string): Verification;
+  verify_twister_text(twisterText: string): Verification;
+  get_result(
     buffoon_name: string,
     prompt_id: number,
     buffoonText: string,
@@ -25,14 +25,14 @@ interface Round {
 }
 
 const defaultValues = {
-  VerifyBuffoonText: function (_: number, buffoonText: string): Verification {
+  verify_buffoon_text: function (_: number, buffoonText: string): Verification {
     if (buffoonText.length < 100) {
       return { valid: true };
     } else {
       return { valid: false, detail: "too long" };
     }
   },
-  VerifyTwisterText: function (twisterText: string): Verification {
+  verify_twister_text: function (twisterText: string): Verification {
     if (twisterText.length < 100) {
       return { valid: true };
     } else {

@@ -4,13 +4,13 @@ import { get_subsection_random_order } from "../utilities";
 
 let Store: Round = {
   ...defaultValues,
-  Name: "Store",
-  Description: "Answer the prompt",
-  TwisterPrompt: "Would be an awful review for the product",
-  GetBuffoonPrompts: (num: number) => {
+  name: "Store",
+  description: "Answer the prompt",
+  twisterPrompt: "Would be an awful review for the product",
+  get_buffoon_prompts: (num: number) => {
     return get_subsection_random_order(Prompts, num);
   },
-  GetResult: (
+  get_result: (
     buffoon_name: string,
     _: number,
     buffoonText: string,

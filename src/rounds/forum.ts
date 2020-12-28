@@ -4,13 +4,13 @@ import { get_subsection_random_order } from "../utilities";
 
 let Forum: Round = {
   ...defaultValues,
-  Name: "Social Network",
-  Description: "Answer the prompt",
-  TwisterPrompt: "Would look ridiculous as a comment to the question",
-  GetBuffoonPrompts: (num: number) => {
+  name: "Social Network",
+  description: "Answer the prompt",
+  twisterPrompt: "Would look ridiculous as a comment to the question",
+  get_buffoon_prompts: (num: number) => {
     return get_subsection_random_order(Prompts, num);
   },
-  GetResult: (
+  get_result: (
     buffoon_name: string,
     _: number,
     buffoonText: string,
