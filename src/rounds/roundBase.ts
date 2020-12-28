@@ -4,10 +4,12 @@ interface Prompt {
   default: string;
 }
 
-interface Verification {
-  valid: boolean;
-  detail?: string;
-}
+type Verification =
+  | {
+      valid: false;
+      detail: string;
+    }
+  | { valid: true };
 
 interface Round {
   name: string;
