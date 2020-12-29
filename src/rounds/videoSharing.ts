@@ -1,5 +1,5 @@
 import Round, { defaultValues } from "./roundBase";
-import Prompts from "../../resources/prompts/default";
+import { basePrompts } from "../../resources/prompts";
 import { get_subsection_random_order } from "../utilities";
 
 let VideoSharing: Round = {
@@ -8,7 +8,7 @@ let VideoSharing: Round = {
   description: "Answer the prompt",
   twisterPrompt: "Would look ridiculous as a comment on the video",
   get_buffoon_prompts: (num: number) => {
-    return get_subsection_random_order(Prompts, num);
+    return get_subsection_random_order(basePrompts, num);
   },
   get_result: (
     buffoon_name: string,
