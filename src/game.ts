@@ -131,9 +131,10 @@ class Game {
 
       const filter = (m: Discord.Message) => m.author.id === textReq.userId;
       const collector = dmChannel.createMessageCollector(filter, {
-        time: 60000,
+        time: 65000,
       });
       user.send(textReq.prompt.prompt);
+      send_a_countdown(user, 60);
       collector?.on("collect", (m: Discord.Message) => {
         console.log(`Collected ${m.content}, from ${user.username}`);
 
@@ -168,6 +169,20 @@ class Game {
       resolveCallback = res;
     });
   }
+}
+
+async function send_a_countdown(user: Discord.User, time: number) {
+  let timeLeft = time;
+  const secondsInterval = 5;
+  const msg = await user.send(`Time left: ${timeLeft}s`);
+  const interval = setInterval(() => {
+    timeLeft = timeLeft - secondsInterval;
+    msg.edit(`Time left: ${timeLeft}s`);
+    if (timeLeft === 0) {
+      clearInterval(interval);
+      msg.delete();
+    }
+  }, secondsInterval * 1000);
 }
 
 export default Game;
