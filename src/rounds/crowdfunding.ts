@@ -1,6 +1,6 @@
 import Round, { defaultValues } from "./roundBase";
 import { basePrompts } from "../../resources/prompts";
-import { get_subsection_random_order } from "../utilities";
+import { crowdFundingDefaultTwists } from "../../resources/defaultTwists";
 
 let Crowdfunding: Round = {
   ...defaultValues,
@@ -8,9 +8,8 @@ let Crowdfunding: Round = {
   description: "Answer the prompt",
   twisterPrompt:
     "Would look terrible if it was in response to campaign titled:",
-  get_buffoon_prompts: (num: number) => {
-    return get_subsection_random_order(basePrompts, num);
-  },
+  possible_buffoon_prompts: basePrompts,
+  possible_filler_twister_texts: crowdFundingDefaultTwists,
   get_result: (
     buffoon_name: string,
     _: number,

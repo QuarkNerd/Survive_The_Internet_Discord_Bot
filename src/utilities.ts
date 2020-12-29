@@ -9,6 +9,10 @@ export function get_subsection_random_order<T>(options: T[], num: number): T[] {
   return rand_nums.map((x) => options[x]);
 }
 
+export function get_random_element<T>(array: Array<T>): T {
+  return array[Math.floor(Math.random() * array.length)];
+}
+
 function generate_n_random_numbers(
   n: number,
   min: number,

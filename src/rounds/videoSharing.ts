@@ -1,15 +1,14 @@
 import Round, { defaultValues } from "./roundBase";
 import { basePrompts } from "../../resources/prompts";
-import { get_subsection_random_order } from "../utilities";
+import { videoSharingDefaultTwists } from "../../resources/defaultTwists";
 
 let VideoSharing: Round = {
   ...defaultValues,
   name: "Video sharing site",
   description: "Answer the prompt",
   twisterPrompt: "Would look ridiculous as a comment on the video",
-  get_buffoon_prompts: (num: number) => {
-    return get_subsection_random_order(basePrompts, num);
-  },
+  possible_buffoon_prompts: basePrompts,
+  possible_filler_twister_texts: videoSharingDefaultTwists,
   get_result: (
     buffoon_name: string,
     _: number,

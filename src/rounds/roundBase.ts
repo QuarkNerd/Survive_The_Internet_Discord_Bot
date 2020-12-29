@@ -15,7 +15,8 @@ interface Round {
   name: string;
   description: string;
   twisterPrompt: string;
-  get_buffoon_prompts(num: number): Prompt[];
+  possible_buffoon_prompts: Prompt[];
+  possible_filler_twister_texts: string[];
   verify_buffoon_text(prompt_id: number, buffoonText: string): Verification;
   verify_twister_text(twisterText: string): Verification;
   get_result(

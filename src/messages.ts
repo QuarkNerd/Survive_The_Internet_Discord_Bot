@@ -1,3 +1,5 @@
+import { get_random_element } from "./utilities";
+
 const JOINING_MESSAGES = [
   "%USERNAME% is a good bean, welcome to the game.",
   "%USERNAME% has joined the game.",
@@ -25,8 +27,4 @@ export function get_leaving_message(name: string): string {
 function generate_message(array: Array<string>, name: string): string {
   const msg = get_random_element(array);
   return msg.replace("%USERNAME%", name);
-}
-
-function get_random_element<T>(array: Array<T>): T {
-  return array[Math.floor(Math.random() * array.length)];
 }

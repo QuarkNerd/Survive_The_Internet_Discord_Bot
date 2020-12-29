@@ -1,15 +1,14 @@
 import Round, { defaultValues } from "./roundBase";
 import { basePrompts } from "../../resources/prompts";
-import { get_subsection_random_order } from "../utilities";
+import { forumDefaultTwists } from "../../resources/defaultTwists";
 
 let Forum: Round = {
   ...defaultValues,
   name: "Social Network",
   description: "Answer the prompt",
   twisterPrompt: "Would look ridiculous as a comment to the question",
-  get_buffoon_prompts: (num: number) => {
-    return get_subsection_random_order(basePrompts, num);
-  },
+  possible_buffoon_prompts: basePrompts,
+  possible_filler_twister_texts: forumDefaultTwists,
   get_result: (
     buffoon_name: string,
     _: number,

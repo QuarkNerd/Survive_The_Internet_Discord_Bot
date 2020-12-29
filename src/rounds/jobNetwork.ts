@@ -1,15 +1,14 @@
 import Round, { defaultValues } from "./roundBase";
 import { jobNetworkPrompts } from "../../resources/prompts";
-import { get_subsection_random_order } from "../utilities";
+import { jobNetworkDefaultTwists } from "../../resources/defaultTwists";
 
 let JobNetwork: Round = {
   ...defaultValues,
   name: "Social Network",
   description: "Answer the prompt",
   twisterPrompt: "Would be a bad way to recommend this person",
-  get_buffoon_prompts: (num: number) => {
-    return get_subsection_random_order(jobNetworkPrompts, num);
-  },
+  possible_buffoon_prompts: jobNetworkPrompts,
+  possible_filler_twister_texts: jobNetworkDefaultTwists,
   get_result: (
     buffoon_name: string,
     _: number,

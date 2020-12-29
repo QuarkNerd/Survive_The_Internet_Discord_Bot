@@ -1,15 +1,14 @@
 import Round, { defaultValues } from "./roundBase";
 import { storePrompts } from "../../resources/prompts";
-import { get_subsection_random_order } from "../utilities";
+import { storeDefaultTwists } from "../../resources/defaultTwists";
 
 let Store: Round = {
   ...defaultValues,
   name: "Store",
   description: "Answer the prompt",
   twisterPrompt: "Would be an awful review for the product",
-  get_buffoon_prompts: (num: number) => {
-    return get_subsection_random_order(storePrompts, num);
-  },
+  possible_buffoon_prompts: storePrompts,
+  possible_filler_twister_texts: storeDefaultTwists,
   get_result: (
     buffoon_name: string,
     _: number,

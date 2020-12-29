@@ -1,15 +1,14 @@
 import Round, { defaultValues } from "./roundBase";
 import { basePrompts } from "../../resources/prompts";
-import { get_subsection_random_order } from "../utilities";
+import { checkInDefaultTwists } from "../../resources/defaultTwists";
 
 let CheckIn: Round = {
   ...defaultValues,
   name: "Social Media",
   description: "Answer the prompt",
   twisterPrompt: "Would look silly if said while checking into this location",
-  get_buffoon_prompts: (num: number) => {
-    return get_subsection_random_order(basePrompts, num);
-  },
+  possible_buffoon_prompts: basePrompts,
+  possible_filler_twister_texts: checkInDefaultTwists,
   get_result: (
     buffoon_name: string,
     _: number,

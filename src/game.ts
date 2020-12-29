@@ -2,7 +2,7 @@ import Discord from "discord.js";
 import DotEnv from "dotenv";
 
 import Round, { Prompt, possibleRounds, Verification } from "./rounds";
-import { get_subsection_random_order } from "./utilities";
+import { get_subsection_random_order, get_random_element } from "./utilities";
 
 interface Player {
   botUser: Discord.User;
@@ -70,11 +70,10 @@ class Game {
   }
 
   async run_part_one(plays: Play[], round: Round): Promise<Play[]> {
-    const promptList = round.get_buffoon_prompts(plays.length);
-    const textRequestList: TextRequest[] = promptList.map((x, i) => ({
-      userId: plays[i].buffoonId,
-      user: this.players[plays[i].buffoonId].botUser,
-      prompt: x,
+    const textRequestList: TextRequest[] = plays.map((x) => ({
+      userId: x.buffoonId,
+      user: this.players[x.buffoonId].botUser,
+      prompt: get_random_element(round.possible_buffoon_prompts),
     }));
 
     const texts = await this.run_part(
@@ -95,7 +94,7 @@ class Game {
       prompt: {
         id: i,
         prompt: `${play.buffoonText}\n\n\n${round.twisterPrompt}`,
-        default: "default",
+        default: get_random_element(round.possible_filler_twister_texts),
       },
     }));
 
