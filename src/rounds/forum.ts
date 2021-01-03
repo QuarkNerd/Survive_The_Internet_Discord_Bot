@@ -4,7 +4,7 @@ import { forumDefaultTwists } from "../../resources/defaultTwists";
 
 let Forum: Round = {
   ...defaultValues,
-  name: "Social Network",
+  name: "Forum",
   description: "Answer the prompt",
   twisterPrompt: "Would look ridiculous as a comment to the question",
   possible_buffoon_prompts: basePrompts,

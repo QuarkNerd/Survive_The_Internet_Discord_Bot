@@ -4,7 +4,7 @@ import { jobNetworkDefaultTwists } from "../../resources/defaultTwists";
 
 let JobNetwork: Round = {
   ...defaultValues,
-  name: "Social Network",
+  name: "Job Network",
   description: "Answer the prompt",
   twisterPrompt: "Would be a bad way to recommend this person",
   possible_buffoon_prompts: jobNetworkPrompts,

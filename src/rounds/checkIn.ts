@@ -4,7 +4,7 @@ import { checkInDefaultTwists } from "../../resources/defaultTwists";
 
 let CheckIn: Round = {
   ...defaultValues,
-  name: "Social Media",
+  name: "Check in",
   description: "Answer the prompt",
   twisterPrompt: "Would look silly if said while checking into this location",
   possible_buffoon_prompts: basePrompts,
