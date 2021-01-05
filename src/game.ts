@@ -8,6 +8,8 @@ import {
   send_a_countdown,
 } from "./utilities";
 
+// Use enums for collector ends
+
 interface Player {
   botUser: Discord.User;
   score: number;
@@ -234,7 +236,6 @@ class Game {
 
     textRequestList.forEach(async (textReq, i) => {
       const user = textReq.user;
-      let responseReceived = false;
 
       let dmChannel = user.dmChannel ? user.dmChannel : await user.createDM();
 
@@ -247,23 +248,22 @@ class Game {
       collector?.on("collect", (m: Discord.Message) => {
         console.log(`Collected ${m.content}, from ${user.username}`);
 
-        if (!responseReceived) {
-          const verification = verify(textReq.prompt.id, m.content);
+        const verification = verify(textReq.prompt.id, m.content);
 
-          if (verification.valid) {
-            onValidText(textReq.userId, m.content);
-            m.react("✔️");
-            cancel_countdown();
-            responseReceived = true;
-          } else {
-            m.react("❌");
-            user.send(verification.detail);
-          }
+        if (verification.valid) {
+          onValidText(textReq.userId, m.content);
+          m.react("✔️");
+          cancel_countdown();
+          collector.stop("Response Received");
+        } else {
+          m.react("❌");
+          user.send(verification.detail);
         }
       });
 
-      collector?.on("end", (_) => {
-        if (!responseReceived) {
+      collector?.on("end", (_, reason) => {
+        console.log(reason, "aaa");
+        if (reason === "time") {
           onValidText(textReq.userId, textReq.prompt.default);
         }
       });
