@@ -2,6 +2,7 @@ import Discord from "discord.js";
 import DotEnv from "dotenv";
 
 import { get_joining_message, get_leaving_message } from "./messages";
+import { react_in_order } from "./utilities";
 import Game from "./game";
 
 DotEnv.config();
@@ -50,15 +51,16 @@ async function new_game_command(msg: Discord.Message): Promise<any> {
     return;
   } else {
     game = new Game(msg.channel as Discord.TextChannel);
-    let message = await msg.channel.send("Let's go");
-    await message.react("✔");
-    await message.react("👍");
-    await message.react("❌");
+    let letsGoMsg = await msg.channel.send("Let's go");
+    await react_in_order(letsGoMsg, ["✔", "👍", "❌"]);
 
-    const collector = message.createReactionCollector(filter_reaction, {
-      time: 30000,
-      dispose: true,
-    });
+    const collector = letsGoMsg.createReactionCollector(
+      filter_sign_up_reaction,
+      {
+        time: 30000,
+        dispose: true,
+      }
+    );
 
     collector.on("collect", (reaction, user) => {
       console.log(`Collected ${reaction.emoji.name} from ${user.tag}`);
@@ -113,7 +115,7 @@ async function new_game_command(msg: Discord.Message): Promise<any> {
   }
 }
 
-function filter_reaction(reaction) {
+function filter_sign_up_reaction(reaction: Discord.MessageReaction) {
   return (
     reaction.emoji.name === "👍" ||
     reaction.emoji.name === "✔" ||

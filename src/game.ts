@@ -1,8 +1,12 @@
 import Discord from "discord.js";
-import { userInfo } from "os";
 
 import Round, { Prompt, possibleRounds, Verification } from "./rounds";
-import { get_subsection_random_order, get_random_element } from "./utilities";
+import {
+  get_subsection_random_order,
+  get_random_element,
+  react_in_order,
+  send_a_countdown,
+} from "./utilities";
 
 interface Player {
   botUser: Discord.User;
@@ -162,13 +166,9 @@ class Game {
       const filter_reaction = (
         reaction: Discord.MessageReaction,
         user: Discord.User
-      ) => {
-        console.log(user.id, x.twisterId);
-        return (
-          user.id === x.twisterId &&
-          emojisAllowed.indexOf(reaction.emoji.name) != -1
-        );
-      };
+      ) =>
+        user.id === x.twisterId &&
+        emojisAllowed.indexOf(reaction.emoji.name) != -1;
 
       const collector = sentMsg.createReactionCollector(filter_reaction, {
         time: 100000,
@@ -277,30 +277,6 @@ class Game {
       resolveCallback = res;
     });
   }
-}
-
-async function react_in_order(
-  msg: Discord.Message,
-  emoji_list: string[]
-): Promise<null> {
-  for (const i in emoji_list) {
-    await msg.react(emoji_list[i]);
-  }
-  return null;
-}
-
-async function send_a_countdown(user: Discord.User, time: number) {
-  let timeLeft = time;
-  const secondsInterval = 5;
-  const msg = await user.send(`Time left: ${timeLeft}s`);
-  const interval = setInterval(() => {
-    timeLeft = timeLeft - secondsInterval;
-    msg.edit(`Time left: ${timeLeft}s`);
-    if (timeLeft === 0) {
-      clearInterval(interval);
-      msg.delete();
-    }
-  }, secondsInterval * 1000);
 }
 
 export default Game;
