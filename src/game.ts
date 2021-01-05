@@ -1,5 +1,5 @@
 import Discord from "discord.js";
-import DotEnv from "dotenv";
+import { userInfo } from "os";
 
 import Round, { Prompt, possibleRounds, Verification } from "./rounds";
 import { get_subsection_random_order, get_random_element } from "./utilities";
@@ -12,8 +12,10 @@ interface Player {
 interface Play {
   buffoonId: string;
   twisterId: string;
+  promptId?: string; // be specific
   buffoonText?: string;
   twisterText?: string;
+  votes?: number;
 }
 
 interface TextRequest {
@@ -21,6 +23,8 @@ interface TextRequest {
   user: Discord.User;
   prompt: Prompt;
 }
+
+const MAX_VOTES = 3; //TODO customiseable
 
 class Game {
   players: {
@@ -66,10 +70,12 @@ class Game {
 
     plays = await this.run_part_one(plays, round);
     plays = await this.run_part_two(plays, round);
+    plays = await this.run_voting(plays, round);
     console.log(plays);
   }
 
   async run_part_one(plays: Play[], round: Round): Promise<Play[]> {
+    // store prompt id in play
     const textRequestList: TextRequest[] = plays.map((x) => ({
       userId: x.buffoonId,
       user: this.players[x.buffoonId].botUser,
@@ -106,6 +112,108 @@ class Game {
     return plays.map((x) => ({
       ...x,
       twisterText: texts[x.twisterId],
+    }));
+  }
+
+  async run_voting(plays: Play[], round: Round): Promise<Play[]> {
+    const emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣"]; // this will be from a function
+
+    const emojiToTwisterId: { [emoji: string]: string } = {};
+
+    plays.forEach((x, i) => {
+      const FAKE_ID = 0;
+      const buffoonUsername = this.players[x.buffoonId].botUser.username;
+      emojiToTwisterId[emojis[i]] = x.twisterId;
+      setTimeout(
+        () =>
+          this.mainChannel.send(
+            round.get_result(
+              buffoonUsername,
+              FAKE_ID,
+              x.buffoonText as string, // improve this
+              x.twisterText as string
+            )
+          ),
+        i * 4000
+      );
+    });
+
+    const msgTxt = plays
+      .map(
+        (x, i) =>
+          `${emojis[i]} ${this.players[x.buffoonId].botUser.username}: ${
+            x.buffoonText
+          }`
+      )
+      .join("\n");
+
+    const botEmojiReactPromises: Promise<null>[] = [];
+    const collectorEndPromises: Promise<null>[] = [];
+    const collectors: Discord.ReactionCollector[] = [];
+    const twisterIdToVotes: { [id: string]: string[] } = {};
+
+    for (let i = 0; i < plays.length; i++) {
+      const x = plays[i];
+      const sentMsg = await this.players[x.twisterId].botUser.send(msgTxt);
+      const emojisAllowed = [...emojis];
+      emojisAllowed.splice(i, 1);
+      botEmojiReactPromises.push(react_in_order(sentMsg, emojisAllowed));
+
+      const filter_reaction = (
+        reaction: Discord.MessageReaction,
+        user: Discord.User
+      ) => {
+        console.log(user.id, x.twisterId);
+        return (
+          user.id === x.twisterId &&
+          emojisAllowed.indexOf(reaction.emoji.name) != -1
+        );
+      };
+
+      const collector = sentMsg.createReactionCollector(filter_reaction, {
+        time: 100000,
+      });
+      collectors.push(collector);
+
+      let voteCount: number = 0;
+      collector.on("collect", (reaction, user) => {
+        console.log(`Collected ${reaction.emoji.name} from ${user.tag}`);
+        voteCount += 1;
+        if (!twisterIdToVotes[emojiToTwisterId[reaction.emoji.name]]) {
+          twisterIdToVotes[emojiToTwisterId[reaction.emoji.name]] = [];
+        }
+        twisterIdToVotes[emojiToTwisterId[reaction.emoji.name]].push(
+          x.twisterId
+        );
+
+        if (voteCount === MAX_VOTES) {
+          collector.stop("User completed voting");
+        }
+      });
+
+      let resolveCallback;
+      const promise: Promise<null> = new Promise((res, _) => {
+        resolveCallback = res;
+      });
+      collectorEndPromises.push(promise);
+
+      collector.on("end", () => {
+        resolveCallback(null);
+      });
+    }
+
+    await Promise.all(botEmojiReactPromises);
+    plays.forEach((x) =>
+      send_a_countdown(this.players[x.twisterId].botUser, 30)
+    );
+    collectors.forEach((x) => x.resetTimer({ time: 35000 }));
+    await Promise.all(collectorEndPromises);
+
+    return plays.map((x) => ({
+      ...x,
+      votes: twisterIdToVotes[x.twisterId]
+        ? twisterIdToVotes[x.twisterId].length
+        : 0,
     }));
   }
 
@@ -169,6 +277,16 @@ class Game {
       resolveCallback = res;
     });
   }
+}
+
+async function react_in_order(
+  msg: Discord.Message,
+  emoji_list: string[]
+): Promise<null> {
+  for (const i in emoji_list) {
+    await msg.react(emoji_list[i]);
+  }
+  return null;
 }
 
 async function send_a_countdown(user: Discord.User, time: number) {
