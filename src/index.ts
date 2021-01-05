@@ -52,7 +52,6 @@ async function new_game_command(msg: Discord.Message): Promise<any> {
   } else {
     game = new Game(msg.channel as Discord.TextChannel);
     let letsGoMsg = await msg.channel.send("Let's go");
-    await react_in_order(letsGoMsg, ["✔", "👍", "❌"]);
 
     const collector = letsGoMsg.createReactionCollector(
       filter_sign_up_reaction,
@@ -62,6 +61,7 @@ async function new_game_command(msg: Discord.Message): Promise<any> {
       }
     );
 
+    react_in_order(letsGoMsg, ["✔", "👍", "❌"]);
     collector.on("collect", (reaction, user) => {
       console.log(`Collected ${reaction.emoji.name} from ${user.tag}`);
 
@@ -115,10 +115,14 @@ async function new_game_command(msg: Discord.Message): Promise<any> {
   }
 }
 
-function filter_sign_up_reaction(reaction: Discord.MessageReaction) {
+function filter_sign_up_reaction(
+  reaction: Discord.MessageReaction,
+  user: Discord.User
+) {
   return (
-    reaction.emoji.name === "👍" ||
-    reaction.emoji.name === "✔" ||
-    reaction.emoji.name === "❌"
+    !user.bot &&
+    (reaction.emoji.name === "👍" ||
+      reaction.emoji.name === "✔" ||
+      reaction.emoji.name === "❌")
   );
 }
