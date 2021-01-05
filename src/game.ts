@@ -203,11 +203,12 @@ class Game {
     }
 
     await Promise.all(botEmojiReactPromises);
-    plays.forEach((x) =>
+    const countdownMsgs = plays.map((x) =>
       send_a_countdown(this.players[x.twisterId].botUser, 30)
     );
     collectors.forEach((x) => x.resetTimer({ time: 35000 }));
     await Promise.all(collectorEndPromises);
+    countdownMsgs.forEach((x) => x());
 
     return plays.map((x) => ({
       ...x,
@@ -242,7 +243,7 @@ class Game {
         time: 65000,
       });
       user.send(textReq.prompt.prompt);
-      send_a_countdown(user, 60);
+      const cancel_countdown = send_a_countdown(user, 60);
       collector?.on("collect", (m: Discord.Message) => {
         console.log(`Collected ${m.content}, from ${user.username}`);
 
@@ -252,6 +253,7 @@ class Game {
           if (verification.valid) {
             onValidText(textReq.userId, m.content);
             m.react("✔️");
+            cancel_countdown();
             responseReceived = true;
           } else {
             m.react("❌");

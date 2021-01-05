@@ -25,7 +25,7 @@ export async function react_in_order(
   return null;
 }
 
-export function send_a_countdown(user: Discord.User, time: number) {
+export function send_a_countdown(user: Discord.User, time: number): () => void {
   const secondsInterval = 5;
   const msg = user.send(`Time left: ${time}s`);
   const interval = setInterval(async () => {
@@ -36,6 +36,12 @@ export function send_a_countdown(user: Discord.User, time: number) {
       (await msg).delete();
     }
   }, secondsInterval * 1000);
+
+  return async () => {
+    if (time > 0) {
+      clearInterval(interval);
+      (await msg).delete();
+    }
   };
 }
 
