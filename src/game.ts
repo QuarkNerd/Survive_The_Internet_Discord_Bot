@@ -21,7 +21,7 @@ interface Play {
   promptId?: string; // be specific
   buffoonText?: string;
   twisterText?: string;
-  votes?: number;
+  votes: number;
 }
 
 interface TextRequest {
@@ -30,7 +30,11 @@ interface TextRequest {
   prompt: Prompt;
 }
 
-const MAX_VOTES = 3; //TODO customiseable
+//TODO customiseable
+const MAX_VOTES = 3;
+const twisterVoteScore = 100;
+const buffoonVoteScore = 20;
+const mostVotesMultiplier = 1.5;
 
 class Game {
   players: {
@@ -71,6 +75,7 @@ class Game {
       return {
         buffoonId: x,
         twisterId: arr[(i + 1) % arr.length],
+        votes: 0,
       };
     });
 
@@ -78,6 +83,7 @@ class Game {
     plays = await this.run_part_two(plays, round);
     plays = await this.run_voting(plays, round);
     console.log(plays);
+    await this.process_votes(plays);
   }
 
   async run_part_one(plays: Play[], round: Round): Promise<Play[]> {
@@ -122,7 +128,7 @@ class Game {
   }
 
   async run_voting(plays: Play[], round: Round): Promise<Play[]> {
-    const emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣"]; // this will be from a function
+    const emojis = get_emoji_array(plays.length);
 
     const emojiToTwisterId: { [emoji: string]: string } = {};
 
@@ -181,12 +187,11 @@ class Game {
       collector.on("collect", (reaction, user) => {
         console.log(`Collected ${reaction.emoji.name} from ${user.tag}`);
         voteCount += 1;
-        if (!twisterIdToVotes[emojiToTwisterId[reaction.emoji.name]]) {
-          twisterIdToVotes[emojiToTwisterId[reaction.emoji.name]] = [];
+        const voteTwisterId = emojiToTwisterId[reaction.emoji.name];
+        if (!twisterIdToVotes[voteTwisterId]) {
+          twisterIdToVotes[voteTwisterId] = [];
         }
-        twisterIdToVotes[emojiToTwisterId[reaction.emoji.name]].push(
-          x.twisterId
-        );
+        twisterIdToVotes[voteTwisterId].push(x.twisterId);
 
         if (voteCount === MAX_VOTES) {
           collector.stop("User completed voting");
@@ -220,7 +225,30 @@ class Game {
     }));
   }
 
-  run_part(
+  process_votes(plays: Play[]) {
+    let mostVotes = 0;
+    plays.forEach((x, i) => {
+      this.players[x.twisterId].score += x.votes * twisterVoteScore;
+      this.players[x.buffoonId].score += x.votes * buffoonVoteScore;
+
+      if (mostVotes < x.votes) {
+        mostVotes = x.votes;
+      }
+    });
+
+    if (mostVotes === 0) {
+      plays
+        .filter((x) => x.votes === mostVotes)
+        .forEach((x) => {
+          this.players[x.twisterId].score +=
+            mostVotesMultiplier * twisterVoteScore;
+          this.players[x.buffoonId].score +=
+            mostVotesMultiplier * buffoonVoteScore;
+        });
+    }
+  }
+
+  async run_part(
     textRequestList: TextRequest[],
     verify: (prompt_id: number, text: string) => Verification
   ): Promise<{ [userId: string]: string }> {
@@ -279,6 +307,10 @@ class Game {
       resolveCallback = res;
     });
   }
+}
+
+function get_emoji_array(len: number): string[] {
+  return ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"].slice(0, len);
 }
 
 export default Game;
