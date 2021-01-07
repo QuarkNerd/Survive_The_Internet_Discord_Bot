@@ -83,7 +83,8 @@ class Game {
     plays = await this.run_part_two(plays, round);
     plays = await this.run_voting(plays, round);
     console.log(plays);
-    await this.process_votes(plays);
+    this.process_votes(plays);
+    this.display_score();
   }
 
   async run_part_one(plays: Play[], round: Round): Promise<Play[]> {
@@ -246,6 +247,37 @@ class Game {
             mostVotesMultiplier * buffoonVoteScore;
         });
     }
+  }
+
+  display_score() {
+    const sortedScores: [string, number][] = Object.entries(this.players)
+      .map(([_, { score, botUser }]): [string, number] => [
+        botUser.username,
+        score,
+      ])
+      .sort((a, b) => (a[1] < b[1] ? 1 : -1));
+
+    let scoreDisplay: string[] = [];
+    let prevPos = 1;
+    let prevScore = undefined;
+
+    for (let i = 0; i < sortedScores.length; i++) {
+      console.log(i);
+      const [username, score] = sortedScores[i];
+      let pos: number;
+      if (prevScore === score) {
+        pos = prevPos;
+      } else {
+        pos = i + 1;
+      }
+      const fullStopsLen = 42 - (username.length + score.toString().length);
+      const fillerFullStops = ".".repeat(fullStopsLen);
+      const potentialGap = pos < 10 ? " " : "";
+      scoreDisplay.push(
+        `${potentialGap}[${pos}] ${username}${fillerFullStops}${score}`
+      );
+    }
+    this.mainChannel.send("```css\n" + scoreDisplay.join("\n") + "\n```");
   }
 
   async run_part(
