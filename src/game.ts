@@ -6,6 +6,7 @@ import {
   get_random_element,
   react_in_order,
   send_a_countdown,
+  sleep,
 } from "./utilities";
 
 // Use enums for collector ends
@@ -81,7 +82,8 @@ class Game {
 
     plays = await this.run_part_one(plays, round);
     plays = await this.run_part_two(plays, round);
-    plays = await this.run_voting(plays, round);
+    await this.showcase_responses(plays, round);
+    plays = await this.run_voting(plays);
     console.log(plays);
     this.process_votes(plays);
     this.display_score();
@@ -128,29 +130,32 @@ class Game {
     }));
   }
 
-  async run_voting(plays: Play[], round: Round): Promise<Play[]> {
-    const emojis = get_emoji_array(plays.length);
-
-    const emojiToTwisterId: { [emoji: string]: string } = {};
-
-    plays.forEach((x, i) => {
+  async showcase_responses(plays: Play[], round: Round) {
+    for (let i = 0; i < plays.length; i++) {
+      const x = plays[i];
       const FAKE_ID = 0;
       const buffoonUsername = this.players[x.buffoonId].botUser.username;
-      emojiToTwisterId[emojis[i]] = x.twisterId;
-      setTimeout(
-        () =>
-          this.mainChannel.send(
-            round.get_result(
-              buffoonUsername,
-              FAKE_ID,
-              x.buffoonText as string, // improve this
-              x.twisterText as string
-            )
-          ),
-        i * 4000
+      await this.mainChannel.send(
+        round.get_result(
+          buffoonUsername,
+          FAKE_ID,
+          x.buffoonText as string, // improve this
+          x.twisterText as string
+        )
       );
-    });
+      await sleep(4000);
+    }
+  }
 
+  async run_voting(plays: Play[]): Promise<Play[]> {
+    const emojis = get_emoji_array(plays.length);
+    const emojiToTwisterId: { [emoji: string]: string } = emojis.reduce(
+      (acc, x, i) => {
+        acc[x] = plays[i].twisterId;
+        return acc;
+      },
+      {}
+    );
     const msgTxt = plays
       .map(
         (x, i) =>

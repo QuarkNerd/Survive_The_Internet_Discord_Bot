@@ -45,6 +45,10 @@ export function send_a_countdown(user: Discord.User, time: number): () => void {
   };
 }
 
+export function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 function generate_n_random_numbers(
   n: number,
   min: number,
