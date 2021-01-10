@@ -7,6 +7,7 @@ import {
   react_in_order,
   send_a_countdown,
   sleep,
+  remove_emojis,
 } from "./utilities";
 
 // Use enums for collector ends
@@ -267,7 +268,6 @@ class Game {
     let prevScore = undefined;
 
     for (let i = 0; i < sortedScores.length; i++) {
-      console.log(i);
       const [username, score] = sortedScores[i];
       let pos: number;
       if (prevScore === score) {
@@ -312,11 +312,11 @@ class Game {
       const cancel_countdown = send_a_countdown(user, 60);
       collector?.on("collect", (m: Discord.Message) => {
         console.log(`Collected ${m.content}, from ${user.username}`);
-
-        const verification = verify(textReq.prompt.id, m.content);
+        const msg = remove_emojis(m.content).trim();
+        const verification = verify(textReq.prompt.id, msg);
 
         if (verification.valid) {
-          onValidText(textReq.userId, m.content);
+          onValidText(textReq.userId, msg);
           m.react("✔️");
           cancel_countdown();
           collector.stop("Response Received");
@@ -327,7 +327,6 @@ class Game {
       });
 
       collector?.on("end", (_, reason) => {
-        console.log(reason, "aaa");
         if (reason === "time") {
           onValidText(textReq.userId, textReq.prompt.default);
         }

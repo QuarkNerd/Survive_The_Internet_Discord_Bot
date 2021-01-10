@@ -29,14 +29,13 @@ interface Round {
 
 function defaultVerifyText(text: string): Verification {
   const maxLength = 100;
-  if (text.length <= maxLength) {
-    return { valid: true };
-  } else {
+  if (text.length > maxLength) {
     return {
       valid: false,
       detail: `Too long. Max Length: ${maxLength}. Current Length: ${text.length}`,
     };
   }
+  return { valid: true };
 }
 
 const defaultValues = {
