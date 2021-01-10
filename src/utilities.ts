@@ -45,8 +45,48 @@ export function send_a_countdown(user: Discord.User, time: number): () => void {
   };
 }
 
-export function sleep(ms) {
+export function sleep(ms: number): Promise<null> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export function split_to_fit_width(
+  text: string,
+  width: number,
+  negativeTolerance: number
+): string[] {
+  text = text.trim();
+  const splitText: string[] = [];
+
+  while (text.length > width) {
+    let wasSplitDone = false;
+
+    for (let i = 0; i < negativeTolerance; i++)
+      if (text[width - i] === " ") {
+        splitText.push(text.slice(0, width - i));
+        text = text.slice(width - i + 1);
+        wasSplitDone = true;
+        break;
+      }
+
+    if (wasSplitDone) {
+      continue;
+    }
+
+    const code = text.charCodeAt(width - 1);
+    if (code > 64 && code < 91 && code > 96 && code < 123) {
+      splitText.push(text.slice(0, width - 1) + "-");
+      text = "-" + text.slice(width - 1);
+    } else {
+      splitText.push(text.slice(0, width));
+      text = text.slice(width);
+    }
+  }
+
+  if (text) {
+    splitText.push(text);
+  }
+
+  return splitText;
 }
 
 function generate_n_random_numbers(

@@ -27,21 +27,23 @@ interface Round {
   ): string;
 }
 
+function defaultVerifyText(text: string): Verification {
+  const maxLength = 100;
+  if (text.length <= maxLength) {
+    return { valid: true };
+  } else {
+    return {
+      valid: false,
+      detail: `Too long. Max Length: ${maxLength}. Current Length: ${text.length}`,
+    };
+  }
+}
+
 const defaultValues = {
   verify_buffoon_text: function (_: number, buffoonText: string): Verification {
-    if (buffoonText.length < 100) {
-      return { valid: true };
-    } else {
-      return { valid: false, detail: "too long" };
-    }
+    return defaultVerifyText(buffoonText);
   },
-  verify_twister_text: function (twisterText: string): Verification {
-    if (twisterText.length < 100) {
-      return { valid: true };
-    } else {
-      return { valid: false, detail: "too long" };
-    }
-  },
+  verify_twister_text: defaultVerifyText,
 };
 
 export { defaultValues, Prompt, Verification };

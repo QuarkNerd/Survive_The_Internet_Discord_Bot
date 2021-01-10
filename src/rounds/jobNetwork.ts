@@ -1,6 +1,7 @@
 import Round, { defaultValues } from "./roundBase";
 import { jobNetworkPrompts } from "../../resources/prompts";
 import { jobNetworkDefaultTwists } from "../../resources/defaultTwists";
+import { split_to_fit_width } from "../utilities";
 
 let JobNetwork: Round = {
   ...defaultValues,
@@ -10,11 +11,19 @@ let JobNetwork: Round = {
   possible_buffoon_prompts: jobNetworkPrompts,
   possible_filler_twister_texts: jobNetworkDefaultTwists,
   get_result: (
-    buffoon_name: string,
+    buffoonName: string,
     _: number,
     buffoonText: string,
     twisterText: string
-  ) => `${twisterText} \n\n ${buffoon_name}: ${buffoonText}`,
+  ) =>
+    "```diff\n" +
+    "_____________________________________________\n" +
+    `-    ${buffoonName}:\n` +
+    "     RECOMMENDS  \n+    " +
+    split_to_fit_width(twisterText, 40, 4).join("\n+    ") +
+    "\n---------------------------------------------\n" +
+    split_to_fit_width(`"${buffoonText}"`, 45, 4).join("\n") +
+    "\n‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\n```",
 };
 
 export default JobNetwork;

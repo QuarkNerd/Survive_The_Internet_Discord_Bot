@@ -1,6 +1,7 @@
 import Round, { defaultValues } from "./roundBase";
 import { basePrompts } from "../../resources/prompts";
 import { crowdFundingDefaultTwists } from "../../resources/defaultTwists";
+import { split_to_fit_width } from "../utilities";
 
 let Crowdfunding: Round = {
   ...defaultValues,
@@ -11,12 +12,22 @@ let Crowdfunding: Round = {
   possible_buffoon_prompts: basePrompts,
   possible_filler_twister_texts: crowdFundingDefaultTwists,
   get_result: (
-    buffoon_name: string,
+    buffoonName: string,
     _: number,
     buffoonText: string,
     twisterText: string
   ) =>
-    `FUND ME PLEASE \n #${twisterText} \n\n\ ${buffoon_name}: ${buffoonText}`,
+    "```diff\n" +
+    "_____________________________________________\n" +
+    "     £ £ £ £ FundStuffForReasons £ £ £ £     \n" +
+    "--------------------------------------------\n+ " +
+    split_to_fit_width(twisterText, 43, 4).join("\n+ ") +
+    "\n--------------------------------------------\n" +
+    "--- £4234 💎 RAISED -- 87898 🙋 Supporters\n" +
+    "--------------------------------------------\n" +
+    `- ${buffoonName}:\n     ` +
+    split_to_fit_width(buffoonText, 40, 4).join("\n     ") +
+    "\n‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\n```",
 };
 
 export default Crowdfunding;

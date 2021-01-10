@@ -45,7 +45,7 @@ class Game {
   mainChannel: Discord.TextChannel;
 
   constructor(mainChannel: Discord.TextChannel) {
-    this.rounds = get_subsection_random_order(possibleRounds, 5);
+    this.rounds = get_subsection_random_order(possibleRounds, 9);
     this.mainChannel = mainChannel;
   }
 
