@@ -35,13 +35,13 @@ bot.on("message", (msg) => {
 
 function handle_dm(msg: Discord.Message): void {}
 
-function handle_text_channel_msg(msg: Discord.Message) {
-  console.log(msg.content);
-  if (!msg.content.startsWith("!survive ")) return;
-  const command = msg.content.split(" ");
+function handle_text_channel_msg(m: Discord.Message) {
+  console.log(`Collected ${m.content}, from ${m.author.username}`);
+  if (!m.content.startsWith("!survive ")) return;
+  const command = m.content.split(" ");
 
   if (command[1] == "ng") {
-    new_game_command(msg);
+    new_game_command(m);
   }
 }
 

@@ -15,6 +15,7 @@ import {
 interface Player {
   botUser: Discord.User;
   score: number;
+  profileEmoji: string;
 }
 
 interface Play {
@@ -44,6 +45,9 @@ class Game {
   } = {};
   rounds: Round[];
   mainChannel: Discord.TextChannel;
+  profileEmojiToId: {
+    [emoji: string]: string;
+  } = {};
 
   constructor(mainChannel: Discord.TextChannel) {
     this.rounds = get_subsection_random_order(possibleRounds, 9);
@@ -51,11 +55,16 @@ class Game {
   }
 
   start(players: Discord.User[]) {
-    players.forEach((player) => {
+    const profileEmojiList = get_identity_emojis(players.length);
+
+    players.forEach((player, i) => {
       this.players[player.id] = {
         botUser: player,
         score: 0,
+        profileEmoji: profileEmojiList[i],
       };
+
+      this.profileEmojiToId[profileEmojiList[i]] = player.id;
     });
 
     this.play();
@@ -149,32 +158,22 @@ class Game {
   }
 
   async run_voting(plays: Play[]): Promise<Play[]> {
-    const emojis = get_emoji_array(plays.length);
-    const emojiToTwisterId: { [emoji: string]: string } = emojis.reduce(
-      (acc, x, i) => {
-        acc[x] = plays[i].twisterId;
-        return acc;
-      },
-      {}
-    );
     const msgTxt = plays
-      .map(
-        (x, i) =>
-          `${emojis[i]} ${this.players[x.buffoonId].botUser.username}: ${
-            x.buffoonText
-          }`
-      )
+      .map((x, i) => {
+        const buffoon = this.players[x.buffoonId];
+        return `${buffoon.profileEmoji} ${buffoon.botUser.username}: ${x.buffoonText}`;
+      })
       .join("\n");
 
     const botEmojiReactPromises: Promise<null>[] = [];
     const collectorEndPromises: Promise<null>[] = [];
     const collectors: Discord.ReactionCollector[] = [];
-    const twisterIdToVotes: { [id: string]: string[] } = {};
+    const buffoonIdToVotes: { [id: string]: string[] } = {};
 
     for (let i = 0; i < plays.length; i++) {
       const x = plays[i];
       const sentMsg = await this.players[x.twisterId].botUser.send(msgTxt);
-      const emojisAllowed = [...emojis];
+      const emojisAllowed = Object.keys(this.profileEmojiToId);
       emojisAllowed.splice(i, 1);
       botEmojiReactPromises.push(react_in_order(sentMsg, emojisAllowed));
 
@@ -194,11 +193,11 @@ class Game {
       collector.on("collect", (reaction, user) => {
         console.log(`Collected ${reaction.emoji.name} from ${user.tag}`);
         voteCount += 1;
-        const voteTwisterId = emojiToTwisterId[reaction.emoji.name];
-        if (!twisterIdToVotes[voteTwisterId]) {
-          twisterIdToVotes[voteTwisterId] = [];
+        const voteBuffoonId = this.profileEmojiToId[reaction.emoji.name];
+        if (!buffoonIdToVotes[voteBuffoonId]) {
+          buffoonIdToVotes[voteBuffoonId] = [];
         }
-        twisterIdToVotes[voteTwisterId].push(x.twisterId);
+        buffoonIdToVotes[voteBuffoonId].push(x.twisterId);
 
         if (voteCount === MAX_VOTES) {
           collector.stop("User completed voting");
@@ -226,8 +225,8 @@ class Game {
 
     return plays.map((x) => ({
       ...x,
-      votes: twisterIdToVotes[x.twisterId]
-        ? twisterIdToVotes[x.twisterId].length
+      votes: buffoonIdToVotes[x.buffoonId]
+        ? buffoonIdToVotes[x.buffoonId].length
         : 0,
     }));
   }
@@ -243,7 +242,7 @@ class Game {
       }
     });
 
-    if (mostVotes === 0) {
+    if (mostVotes !== 0) {
       plays
         .filter((x) => x.votes === mostVotes)
         .forEach((x) => {
@@ -264,15 +263,13 @@ class Game {
       .sort((a, b) => (a[1] < b[1] ? 1 : -1));
 
     let scoreDisplay: string[] = [];
-    let prevPos = 1;
+    let pos = 0;
     let prevScore = undefined;
 
     for (let i = 0; i < sortedScores.length; i++) {
       const [username, score] = sortedScores[i];
-      let pos: number;
-      if (prevScore === score) {
-        pos = prevPos;
-      } else {
+
+      if (prevScore !== score) {
         pos = i + 1;
       }
       const fullStopsLen = 42 - (username.length + score.toString().length);
@@ -345,8 +342,26 @@ class Game {
   }
 }
 
-function get_emoji_array(len: number): string[] {
-  return ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"].slice(0, len);
+function get_identity_emojis(num: number): string[] {
+  return get_subsection_random_order(
+    [
+      "🟩",
+      "🟥",
+      "🟦",
+      "🟧",
+      "🟨",
+      "🟪",
+      "🟫",
+      "🟠",
+      "🟣",
+      "🟤",
+      "🟡",
+      "🔵",
+      "🟢",
+      "🔴",
+    ],
+    num
+  );
 }
 
 export default Game;
