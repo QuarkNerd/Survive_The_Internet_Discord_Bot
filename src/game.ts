@@ -10,8 +10,6 @@ import {
   remove_emojis,
 } from "./utilities";
 
-// Use enums for collector ends
-
 interface Player {
   botUser: Discord.User;
   score: number;
@@ -35,9 +33,14 @@ interface TextRequest {
 
 //TODO customiseable
 const MAX_VOTES = 3;
-const twisterVoteScore = 100;
-const buffoonVoteScore = 20;
-const mostVotesMultiplier = 1.5;
+
+const PART_ONE_TIME_LIMIT = 60;
+const PART_TWO_TIME_LIMIT = 75;
+const VOTING_TIME_LIMIT = 30;
+
+const TWISTER_VOTE_SCORE = 100;
+const BUFFOON_VOTE_SCORE = 20;
+const MOST_VOTES_MULTIPLIER = 1.5;
 
 class Game {
   players: {
@@ -109,7 +112,8 @@ class Game {
 
     const texts = await this.run_part(
       textRequestList,
-      round.verify_buffoon_text
+      round.verify_buffoon_text,
+      PART_ONE_TIME_LIMIT
     );
 
     return plays.map((x) => ({
@@ -131,7 +135,8 @@ class Game {
 
     const texts = await this.run_part(
       textRequestList,
-      (_: number, text: string) => round.verify_twister_text(text)
+      (_: number, text: string) => round.verify_twister_text(text),
+      PART_TWO_TIME_LIMIT
     );
 
     return plays.map((x) => ({
@@ -141,6 +146,8 @@ class Game {
   }
 
   async showcase_responses(plays: Play[], round: Round) {
+    this.mainChannel.send("Let's see what you have come up with?");
+    await sleep(4000);
     for (let i = 0; i < plays.length; i++) {
       const x = plays[i];
       const FAKE_ID = 0;
@@ -154,7 +161,7 @@ class Game {
           x.twisterText as string
         )
       );
-      await sleep(4000);
+      await sleep(6000);
     }
   }
 
@@ -218,9 +225,11 @@ class Game {
 
     await Promise.all(botEmojiReactPromises);
     const countdownMsgs = plays.map((x) =>
-      send_a_countdown(this.players[x.twisterId].botUser, 30)
+      send_a_countdown(this.players[x.twisterId].botUser, VOTING_TIME_LIMIT)
     );
-    collectors.forEach((x) => x.resetTimer({ time: 35000 }));
+    collectors.forEach((x) =>
+      x.resetTimer({ time: (VOTING_TIME_LIMIT + 5) * 1000 })
+    );
     await Promise.all(collectorEndPromises);
     countdownMsgs.forEach((x) => x());
 
@@ -235,8 +244,8 @@ class Game {
   process_votes(plays: Play[]) {
     let mostVotes = 0;
     plays.forEach((x, i) => {
-      this.players[x.twisterId].score += x.votes * twisterVoteScore;
-      this.players[x.buffoonId].score += x.votes * buffoonVoteScore;
+      this.players[x.twisterId].score += x.votes * TWISTER_VOTE_SCORE;
+      this.players[x.buffoonId].score += x.votes * BUFFOON_VOTE_SCORE;
 
       if (mostVotes < x.votes) {
         mostVotes = x.votes;
@@ -248,9 +257,9 @@ class Game {
         .filter((x) => x.votes === mostVotes)
         .forEach((x) => {
           this.players[x.twisterId].score +=
-            mostVotesMultiplier * twisterVoteScore;
+            MOST_VOTES_MULTIPLIER * TWISTER_VOTE_SCORE;
           this.players[x.buffoonId].score +=
-            mostVotesMultiplier * buffoonVoteScore;
+            MOST_VOTES_MULTIPLIER * BUFFOON_VOTE_SCORE;
         });
     }
   }
@@ -285,7 +294,8 @@ class Game {
 
   async run_part(
     textRequestList: TextRequest[],
-    verify: (prompt_id: number, text: string) => Verification
+    verify: (prompt_id: number, text: string) => Verification,
+    timeLimit: number
   ): Promise<{ [userId: string]: string }> {
     let resolveCallback;
     let returnedText: { [userId: string]: string } = {};
@@ -304,10 +314,10 @@ class Game {
 
       const filter = (m: Discord.Message) => m.author.id === textReq.userId;
       const collector = dmChannel.createMessageCollector(filter, {
-        time: 65000,
+        time: (timeLimit + 5) * 1000,
       });
       user.send(textReq.prompt.prompt);
-      const cancel_countdown = send_a_countdown(user, 60);
+      const cancel_countdown = send_a_countdown(user, timeLimit);
       collector?.on("collect", (m: Discord.Message) => {
         console.log(`Collected ${m.content}, from ${user.username}`);
         const msg = remove_emojis(m.content).trim();

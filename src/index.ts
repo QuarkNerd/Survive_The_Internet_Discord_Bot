@@ -5,9 +5,11 @@ import { get_joining_message, get_leaving_message } from "./messages";
 import { react_in_order } from "./utilities";
 import Game from "./game";
 
+const SIGN_UP_TIME_LIMIT = 30;
+
 DotEnv.config();
 const TOKEN = process.env.TOKEN;
-const bot = new Discord.Client();
+const BOT = new Discord.Client();
 
 enum SignUpEnd {
   GameStarted = "start",
@@ -18,13 +20,13 @@ enum SignUpEnd {
 let game: Game | null;
 let players: Discord.User[] = [];
 
-bot.login(TOKEN);
+BOT.login(TOKEN);
 
-bot.on("ready", () => {
-  console.info(`Logged in as ${bot?.user?.tag}!`);
+BOT.on("ready", () => {
+  console.info(`Logged in as ${BOT?.user?.tag}!`);
 });
 
-bot.on("message", (msg) => {
+BOT.on("message", (msg) => {
   if (msg.author.bot) return;
   if (msg.channel.type == "text") {
     handle_text_channel_msg(msg);
@@ -56,7 +58,7 @@ async function new_game_command(msg: Discord.Message): Promise<any> {
     const collector = letsGoMsg.createReactionCollector(
       filter_sign_up_reaction,
       {
-        time: 30000,
+        time: SIGN_UP_TIME_LIMIT * 1000,
         dispose: true,
       }
     );
