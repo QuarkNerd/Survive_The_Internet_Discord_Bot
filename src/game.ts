@@ -94,8 +94,8 @@ class Game {
     plays = await this.run_part_two(plays, round);
     await this.showcase_responses(plays, round);
     plays = await this.run_voting(plays);
-    console.log(plays);
     this.process_votes(plays);
+    console.log(plays);
     this.display_score();
   }
 
@@ -124,7 +124,7 @@ class Game {
       user: this.players[play.twisterId].botUser,
       prompt: {
         id: i,
-        prompt: `${play.buffoonText}\n\n\n${round.twisterPrompt}`,
+        prompt: "```" + play.buffoonText + "```" + round.twisterPrompt,
         default: get_random_element(round.possible_filler_twister_texts),
       },
     }));
@@ -149,7 +149,8 @@ class Game {
         round.get_result(
           buffoonUsername,
           FAKE_ID,
-          x.buffoonText as string, // improve this
+          x.buffoonText as string,
+          this.players[x.buffoonId].profileEmoji,
           x.twisterText as string
         )
       );

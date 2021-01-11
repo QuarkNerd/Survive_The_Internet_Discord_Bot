@@ -14,13 +14,14 @@ let JobNetwork: Round = {
     buffoonName: string,
     _: number,
     buffoonText: string,
+    profileEmoji: string,
     twisterText: string
   ) =>
     "```diff\n" +
     "_____________________________________________\n" +
-    `-    ${buffoonName}:\n` +
-    "     RECOMMENDS  \n+    " +
-    split_to_fit_width(twisterText, 40, 4).join("\n+    ") +
+    `-${profileEmoji.repeat(2)} ${buffoonName}:\n` +
+    ` ${profileEmoji.repeat(2)} RECOMMENDS  \n+      ` +
+    split_to_fit_width(twisterText, 38, 4).join("\n+      ") +
     "\n---------------------------------------------\n" +
     split_to_fit_width(`"${buffoonText}"`, 45, 4).join("\n") +
     "\n‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\n```",

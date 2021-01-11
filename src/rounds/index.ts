@@ -11,15 +11,15 @@ import Store from "./store";
 import VideoSharing from "./videoSharing";
 
 const possibleRounds = [
-  CheckIn,
-  Crowdfunding,
-  Forum,
-  JobNetwork,
+  // CheckIn,
+  // Crowdfunding,
+  // Forum,
+  // JobNetwork,
   News,
-  SocialMedia,
-  SocialNetwork,
-  Store,
-  VideoSharing,
+  // SocialMedia,
+  // SocialNetwork,
+  // Store,
+  // VideoSharing,
 ];
 
 export { possibleRounds, Prompt, Verification };

@@ -14,13 +14,15 @@ let CheckIn: Round = {
     buffoonName: string,
     _: number,
     buffoonText: string,
+    profileEmoji: string,
     twisterText: string
   ) =>
     "```diff\n" +
     "_____________________________________________\n" +
     "---   CHECKIN\n" +
     "---------------\n" +
-    `- ${buffoonName}:\n+   ` +
+    ` ${profileEmoji.repeat(2)}\n` +
+    `-${profileEmoji.repeat(2)} ${buffoonName}:\n+   ` +
     split_to_fit_width(buffoonText, 40, 4).join("\n+   ") +
     "\n  📍 " +
     split_to_fit_width(twisterText, 40, 4).join("\n    ") +

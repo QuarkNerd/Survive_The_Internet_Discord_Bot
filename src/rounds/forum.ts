@@ -2,6 +2,7 @@ import Round, { defaultValues } from "./roundBase";
 import { basePrompts } from "../../resources/prompts";
 import { forumDefaultTwists } from "../../resources/defaultTwists";
 import { split_to_fit_width } from "../utilities";
+import { create_comment } from "./utilities";
 
 let Forum: Round = {
   ...defaultValues,
@@ -14,6 +15,7 @@ let Forum: Round = {
     buffoonName: string,
     _: number,
     buffoonText: string,
+    profileEmoji: string,
     twisterText: string
   ) =>
     "```diff\n" +
@@ -28,9 +30,8 @@ let Forum: Round = {
     "\n--------------------------------------------\n" +
     "---ANSWERS\n" +
     "--------------------------------------------\n" +
-    `- ${buffoonName}:\n     ` +
-    split_to_fit_width(buffoonText, 40, 4).join("\n     ") +
-    "\n‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\n```",
+    create_comment(buffoonName, profileEmoji, buffoonText) +
+    "‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\n```",
 };
 
 export default Forum;

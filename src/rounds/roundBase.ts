@@ -23,6 +23,7 @@ interface Round {
     buffoon_name: string,
     prompt_id: number,
     buffoonText: string,
+    profileEmoji: string,
     twisterText: string
   ): string;
 }

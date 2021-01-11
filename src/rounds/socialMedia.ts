@@ -14,19 +14,20 @@ let SocialMedia: Round = {
     buffoonName: string,
     _: number,
     buffoonText: string,
+    profileEmoji: string,
     twisterText: string
   ) =>
     "```diff\n" +
     "_____________________________________________\n" +
-    "                 \n" +
-    `-     ${buffoonName}:\n` +
-    split_to_fit_width(`"${buffoonText}"`, 45, 4).join("\n") +
-    "\n+ " +
+    ` ${profileEmoji.repeat(2)}\n` +
+    `-${profileEmoji.repeat(2)} ${buffoonName}:\n+   ` +
+    split_to_fit_width(buffoonText, 40, 4).join("\n+   ") +
+    "\n   #" +
     split_to_fit_width(
-      (twisterText[0] === "#" ? "" : "#") + twisterText,
-      43,
+      twisterText[0] === "#" ? twisterText.slice(1) : twisterText,
+      40,
       4
-    ).join("\n+ ") +
+    ).join("\n    ") +
     "\n‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\n```",
 };
 

@@ -2,6 +2,7 @@ import Round, { defaultValues } from "./roundBase";
 import { basePrompts } from "../../resources/prompts";
 import { videoSharingDefaultTwists } from "../../resources/defaultTwists";
 import { split_to_fit_width } from "../utilities";
+import { create_comment } from "./utilities";
 
 let VideoSharing: Round = {
   ...defaultValues,
@@ -14,6 +15,7 @@ let VideoSharing: Round = {
     buffoonName: string,
     _: number,
     buffoonText: string,
+    profileEmoji: string,
     twisterText: string
   ) =>
     "```diff\n" +
@@ -23,9 +25,8 @@ let VideoSharing: Round = {
     split_to_fit_width(twisterText, 40, 4).join("\n+    ") +
     "\n--- 👍 120 👎 222\n" +
     "--------------------------------------------\n" +
-    `- ${buffoonName}:\n     ` +
-    split_to_fit_width(buffoonText, 40, 4).join("\n     ") +
-    "\n‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\n```",
+    create_comment(buffoonName, profileEmoji, buffoonText) +
+    "‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\n```",
 };
 
 export default VideoSharing;
