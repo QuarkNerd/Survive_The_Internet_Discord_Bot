@@ -22,7 +22,7 @@ interface Play {
   promptId?: string; // be specific
   buffoonText?: string;
   twisterText?: string;
-  votes: number;
+  votes: string[];
 }
 
 interface TextRequest {
@@ -89,7 +89,7 @@ class Game {
       return {
         buffoonId: x,
         twisterId: arr[(i + 1) % arr.length],
-        votes: 0,
+        votes: [],
       };
     });
 
@@ -97,9 +97,10 @@ class Game {
     plays = await this.run_part_two(plays, round);
     await this.showcase_responses(plays, round);
     plays = await this.run_voting(plays);
-    this.process_votes(plays);
+    this.process_votes(plays); // get score change
     console.log(plays);
-    this.display_score();
+    await this.display_results(plays);
+    await this.display_score();
   }
 
   async run_part_one(plays: Play[], round: Round): Promise<Play[]> {
@@ -146,7 +147,7 @@ class Game {
   }
 
   async showcase_responses(plays: Play[], round: Round) {
-    this.mainChannel.send("Let's see what you have come up with?");
+    this.mainChannel.send("Let's see what you have come up with!");
     await sleep(4000);
     for (let i = 0; i < plays.length; i++) {
       const x = plays[i];
@@ -166,12 +167,11 @@ class Game {
   }
 
   async run_voting(plays: Play[]): Promise<Play[]> {
-    const msgTxt = plays
-      .map((x, i) => {
-        const buffoon = this.players[x.buffoonId];
-        return `${buffoon.profileEmoji} ${buffoon.botUser.username}: ${x.buffoonText}`;
-      })
-      .join("\n");
+    const msgTxt = generate_combined_display(
+      plays,
+      CombinedDisplayType.Basic,
+      this.players
+    );
 
     const botEmojiReactPromises: Promise<null>[] = [];
     const collectorEndPromises: Promise<null>[] = [];
@@ -205,7 +205,9 @@ class Game {
         if (!buffoonIdToVotes[voteBuffoonId]) {
           buffoonIdToVotes[voteBuffoonId] = [];
         }
-        buffoonIdToVotes[voteBuffoonId].push(x.twisterId);
+        buffoonIdToVotes[voteBuffoonId].push(
+          this.players[x.twisterId].profileEmoji
+        );
 
         if (voteCount === MAX_VOTES) {
           collector.stop("User completed voting");
@@ -235,26 +237,24 @@ class Game {
 
     return plays.map((x) => ({
       ...x,
-      votes: buffoonIdToVotes[x.buffoonId]
-        ? buffoonIdToVotes[x.buffoonId].length
-        : 0,
+      votes: buffoonIdToVotes[x.buffoonId] ?? [],
     }));
   }
 
   process_votes(plays: Play[]) {
     let mostVotes = 0;
-    plays.forEach((x, i) => {
-      this.players[x.twisterId].score += x.votes * TWISTER_VOTE_SCORE;
-      this.players[x.buffoonId].score += x.votes * BUFFOON_VOTE_SCORE;
+    plays.forEach((x) => {
+      this.players[x.twisterId].score += x.votes.length * TWISTER_VOTE_SCORE;
+      this.players[x.buffoonId].score += x.votes.length * BUFFOON_VOTE_SCORE;
 
-      if (mostVotes < x.votes) {
-        mostVotes = x.votes;
+      if (mostVotes < x.votes.length) {
+        mostVotes = x.votes.length;
       }
     });
 
     if (mostVotes !== 0) {
       plays
-        .filter((x) => x.votes === mostVotes)
+        .filter((x) => x.votes.length === mostVotes)
         .forEach((x) => {
           this.players[x.twisterId].score +=
             MOST_VOTES_MULTIPLIER * TWISTER_VOTE_SCORE;
@@ -264,7 +264,26 @@ class Game {
     }
   }
 
-  display_score() {
+  async display_results(plays: Play[]) {
+    const msg = await this.mainChannel.send(
+      generate_combined_display(plays, CombinedDisplayType.Basic, this.players)
+    );
+    await sleep(5000);
+    await msg.edit(
+      generate_combined_display(plays, CombinedDisplayType.Votes, this.players)
+    );
+    await sleep(5000);
+    await msg.edit(
+      generate_combined_display(
+        plays,
+        CombinedDisplayType.Twister,
+        this.players
+      )
+    );
+  }
+
+  async display_score() {
+    await sleep(5000);
     const sortedScores: [string, number][] = Object.entries(this.players)
       .map(([_, { score, botUser }]): [string, number] => [
         botUser.username,
@@ -289,7 +308,8 @@ class Game {
         `${potentialGap}[${pos}] ${username}${fillerFullStops}${score}`
       );
     }
-    this.mainChannel.send("```css\n" + scoreDisplay.join("\n") + "\n```");
+    await this.mainChannel.send("```css\n" + scoreDisplay.join("\n") + "\n```");
+    await sleep(5000);
   }
 
   async run_part(
@@ -351,6 +371,46 @@ class Game {
       resolveCallback = res;
     });
   }
+}
+
+enum CombinedDisplayType {
+  Basic = "Basic",
+  Votes = "Votes",
+  Twister = "Twister",
+}
+
+function generate_combined_display(
+  plays: Play[],
+  type: CombinedDisplayType,
+  players: {
+    [userId: string]: Player;
+  }
+): string {
+  return plays
+    .map((x) => {
+      let playDisplay = `${players[x.buffoonId].profileEmoji} ${
+        players[x.buffoonId].botUser.username
+      }:\n${x.buffoonText}`;
+
+      if (type === CombinedDisplayType.Basic) {
+        return playDisplay;
+      }
+
+      playDisplay += `\nVotes:\n${x.votes.join("")}`;
+
+      if (type === CombinedDisplayType.Votes) {
+        return playDisplay;
+      }
+
+      return (
+        playDisplay +
+        `\nBurned By:\n${players[x.twisterId].profileEmoji} ${
+          players[x.twisterId].botUser.username
+        }`
+      );
+    })
+    .map((display) => "```" + display + "```")
+    .join("\n\n");
 }
 
 function get_identity_emojis(num: number): string[] {
