@@ -80,6 +80,7 @@ class Game {
   }
 
   async run_round(round: Round, num: number) {
+    // todo move these things into functions
     this.mainChannel.send(`Round ${num + 1}: ${round.name}`);
     let playerIds = Object.keys(this.players);
     let plays: Play[] = get_subsection_random_order(
@@ -97,10 +98,10 @@ class Game {
     plays = await this.run_part_two(plays, round);
     await this.showcase_responses(plays, round);
     plays = await this.run_voting(plays);
-    this.process_votes(plays); // get score change
-    console.log(plays);
-    await this.display_results(plays);
-    await this.display_score();
+    await this.display_round_results(plays);
+    const scoreIncrease = this.get_score_increase(plays);
+    this.update_score(scoreIncrease);
+    await this.display_score(scoreIncrease);
   }
 
   async run_part_one(plays: Play[], round: Round): Promise<Play[]> {
@@ -241,11 +242,12 @@ class Game {
     }));
   }
 
-  process_votes(plays: Play[]) {
+  get_score_increase(plays: Play[]): { [id: string]: number } {
+    const scoreIncrease: { [id: string]: number } = {};
     let mostVotes = 0;
     plays.forEach((x) => {
-      this.players[x.twisterId].score += x.votes.length * TWISTER_VOTE_SCORE;
-      this.players[x.buffoonId].score += x.votes.length * BUFFOON_VOTE_SCORE;
+      scoreIncrease[x.twisterId] = x.votes.length * TWISTER_VOTE_SCORE;
+      scoreIncrease[x.buffoonId] = x.votes.length * BUFFOON_VOTE_SCORE;
 
       if (mostVotes < x.votes.length) {
         mostVotes = x.votes.length;
@@ -256,15 +258,23 @@ class Game {
       plays
         .filter((x) => x.votes.length === mostVotes)
         .forEach((x) => {
-          this.players[x.twisterId].score +=
+          scoreIncrease[x.twisterId] =
             MOST_VOTES_MULTIPLIER * TWISTER_VOTE_SCORE;
-          this.players[x.buffoonId].score +=
+          scoreIncrease[x.buffoonId] =
             MOST_VOTES_MULTIPLIER * BUFFOON_VOTE_SCORE;
         });
     }
+
+    return scoreIncrease;
   }
 
-  async display_results(plays: Play[]) {
+  update_score(scoreIncrease: { [id: string]: number }) {
+    Object.values(this.players).forEach(
+      (player) => (player.score += scoreIncrease[player.botUser.id])
+    );
+  }
+
+  async display_round_results(plays: Play[]) {
     const msg = await this.mainChannel.send(
       generate_combined_display(plays, CombinedDisplayType.Basic, this.players)
     );
@@ -282,12 +292,15 @@ class Game {
     );
   }
 
-  async display_score() {
+  async display_score(scoreIncrease: { [id: string]: number }) {
     await sleep(5000);
-    const sortedScores: [string, number][] = Object.entries(this.players)
-      .map(([_, { score, botUser }]): [string, number] => [
+    const sortedScores: [string, number, number][] = Object.entries(
+      this.players
+    )
+      .map(([_, { score, botUser }]): [string, number, number] => [
         botUser.username,
         score,
+        scoreIncrease[botUser.id],
       ])
       .sort((a, b) => (a[1] < b[1] ? 1 : -1));
 
@@ -296,16 +309,19 @@ class Game {
     let prevScore = undefined;
 
     for (let i = 0; i < sortedScores.length; i++) {
-      const [username, score] = sortedScores[i];
-
+      const [username, score, scoreChange] = sortedScores[i];
       if (prevScore !== score) {
         pos = i + 1;
       }
-      const fullStopsLen = 42 - (username.length + score.toString().length);
+      const fullStopsLen =
+        42 -
+        (username.length +
+          score.toString().length +
+          scoreChange.toString().length);
       const fillerFullStops = ".".repeat(fullStopsLen);
       const potentialGap = pos < 10 ? " " : "";
       scoreDisplay.push(
-        `${potentialGap}[${pos}] ${username}${fillerFullStops}${score}`
+        `${potentialGap}[${pos}] ${username}${fillerFullStops}${score} [+${scoreChange}]`
       );
     }
     await this.mainChannel.send("```css\n" + scoreDisplay.join("\n") + "\n```");
