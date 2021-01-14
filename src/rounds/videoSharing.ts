@@ -4,7 +4,7 @@ import { videoSharingDefaultTwists } from "../../resources/defaultTwists";
 import { split_to_fit_width } from "../utilities";
 import { create_comment } from "./utilities";
 
-let VideoSharing: Round = {
+const VideoSharing: Round = {
   ...defaultValues,
   name: "Video sharing site",
   description: "Answer the prompt",

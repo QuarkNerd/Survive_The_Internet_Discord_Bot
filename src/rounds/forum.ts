@@ -4,7 +4,7 @@ import { forumDefaultTwists } from "../../resources/defaultTwists";
 import { split_to_fit_width } from "../utilities";
 import { create_comment } from "./utilities";
 
-let Forum: Round = {
+const Forum: Round = {
   ...defaultValues,
   name: "Forum",
   description: "Answer the prompt",

@@ -3,7 +3,7 @@ import { basePrompts } from "../../resources/prompts";
 import { checkInDefaultTwists } from "../../resources/defaultTwists";
 import { split_to_fit_width } from "../utilities";
 
-let CheckIn: Round = {
+const CheckIn: Round = {
   ...defaultValues,
   name: "Check in",
   description: "Answer the prompt",

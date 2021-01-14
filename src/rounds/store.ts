@@ -4,7 +4,7 @@ import { storeDefaultTwists } from "../../resources/defaultTwists";
 import { split_to_fit_width } from "../utilities";
 import { create_comment } from "./utilities";
 
-let Store: Round = {
+const Store: Round = {
   ...defaultValues,
   name: "Store",
   description: "Answer the prompt",

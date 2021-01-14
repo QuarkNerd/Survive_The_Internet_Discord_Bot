@@ -3,7 +3,7 @@ import { basePrompts } from "../../resources/prompts";
 import { socialMediaDefaultTwists } from "../../resources/defaultTwists";
 import { split_to_fit_width } from "../utilities";
 
-let SocialMedia: Round = {
+const SocialMedia: Round = {
   ...defaultValues,
   name: "Social Media",
   description: "Answer the prompt",

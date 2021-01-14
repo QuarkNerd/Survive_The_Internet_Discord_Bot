@@ -4,7 +4,7 @@ import { socialNetworkDefaultTwists } from "../../resources/defaultTwists";
 import { split_to_fit_width } from "../utilities";
 import { create_comment } from "./utilities";
 
-let SocialNetwork: Round = {
+const SocialNetwork: Round = {
   ...defaultValues,
   name: "Social Network",
   description: "Answer the prompt",

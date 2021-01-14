@@ -4,7 +4,7 @@ import { crowdFundingDefaultTwists } from "../../resources/defaultTwists";
 import { split_to_fit_width } from "../utilities";
 import { create_comment } from "./utilities";
 
-let Crowdfunding: Round = {
+const Crowdfunding: Round = {
   ...defaultValues,
   name: "Crowdfunding",
   description: "Answer the prompt",

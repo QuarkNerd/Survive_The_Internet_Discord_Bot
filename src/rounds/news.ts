@@ -4,7 +4,7 @@ import { newsDefaultTwists } from "../../resources/defaultTwists";
 import { split_to_fit_width } from "../utilities";
 import { create_comment } from "./utilities";
 
-let News: Round = {
+const News: Round = {
   ...defaultValues,
   name: "News",
   description: "Answer the prompt",

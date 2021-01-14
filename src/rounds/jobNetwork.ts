@@ -3,7 +3,7 @@ import { jobNetworkPrompts } from "../../resources/prompts";
 import { jobNetworkDefaultTwists } from "../../resources/defaultTwists";
 import { split_to_fit_width } from "../utilities";
 
-let JobNetwork: Round = {
+const JobNetwork: Round = {
   ...defaultValues,
   name: "Job Network",
   description: "Answer the prompt",
