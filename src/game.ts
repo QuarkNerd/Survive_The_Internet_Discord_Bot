@@ -22,6 +22,7 @@ interface Play {
   promptId?: string; // be specific
   buffoonText?: string;
   twisterText?: string;
+  showcaseMsg?: Discord.Message;
   votes: string[];
 }
 
@@ -33,10 +34,11 @@ interface TextRequest {
 
 //TODO customiseable
 const MAX_VOTES = 3;
+const VOTING_EMOJIS = ["🌕", "🌖", "🌗", "🌘", "🌑"]; //, "🌒", "🌓", "🌔"];
 
 const PART_ONE_TIME_LIMIT = 60;
 const PART_TWO_TIME_LIMIT = 75;
-const VOTING_TIME_LIMIT = 30;
+const VOTING_TIME_LIMIT = 40;
 
 const TWISTER_VOTE_SCORE = 100;
 const BUFFOON_VOTE_SCORE = 20;
@@ -48,9 +50,6 @@ class Game {
   } = {};
   rounds: Round[];
   mainChannel: Discord.TextChannel;
-  profileEmojiToId: {
-    [emoji: string]: string;
-  } = {};
 
   constructor(mainChannel: Discord.TextChannel) {
     this.rounds = get_subsection_random_order(possibleRounds, 9);
@@ -66,8 +65,6 @@ class Game {
         score: 0,
         profileEmoji: profileEmojiList[i],
       };
-
-      this.profileEmojiToId[profileEmojiList[i]] = player.id;
     });
 
     this.play();
@@ -96,7 +93,7 @@ class Game {
 
     plays = await this.run_part_one(plays, round);
     plays = await this.run_part_two(plays, round);
-    await this.showcase_responses(plays, round);
+    plays = await this.showcase_responses(plays, round);
     plays = await this.run_voting(plays);
     await this.display_round_results(plays);
     const scoreIncrease = this.get_score_increase(plays);
@@ -147,14 +144,15 @@ class Game {
     }));
   }
 
-  async showcase_responses(plays: Play[], round: Round) {
+  async showcase_responses(plays: Play[], round: Round): Promise<Play[]> {
     this.mainChannel.send("Let's see what you have come up with!");
+    const playsWithMessages: Play[] = [];
     await sleep(4000);
     for (let i = 0; i < plays.length; i++) {
       const x = plays[i];
       const FAKE_ID = 0;
       const buffoonUsername = this.players[x.buffoonId].botUser.username;
-      await this.mainChannel.send(
+      const showcaseMsg = await this.mainChannel.send(
         round.get_result(
           buffoonUsername,
           FAKE_ID,
@@ -163,82 +161,77 @@ class Game {
           x.twisterText as string
         )
       );
-      await sleep(6000);
+      playsWithMessages.push({
+        ...x,
+        showcaseMsg,
+      });
+      await sleep(8000);
     }
+
+    return playsWithMessages;
   }
 
   async run_voting(plays: Play[]): Promise<Play[]> {
-    const msgTxt = generate_combined_display(
-      plays,
-      CombinedDisplayType.Basic,
-      this.players
-    );
-
     const botEmojiReactPromises: Promise<null>[] = [];
-    const collectorEndPromises: Promise<null>[] = [];
     const collectors: Discord.ReactionCollector[] = [];
-    const buffoonIdToVotes: { [id: string]: string[] } = {};
+    const votesGivenToBuffoonsByVoterId: { [id: string]: string[] } = {};
 
     for (let i = 0; i < plays.length; i++) {
       const x = plays[i];
-      const sentMsg = await this.players[x.twisterId].botUser.send(msgTxt);
-      const emojisAllowed = Object.keys(this.profileEmojiToId);
-      emojisAllowed.splice(i, 1);
-      botEmojiReactPromises.push(react_in_order(sentMsg, emojisAllowed));
 
       const filter_reaction = (
         reaction: Discord.MessageReaction,
         user: Discord.User
       ) =>
-        user.id === x.twisterId &&
-        emojisAllowed.indexOf(reaction.emoji.name) != -1;
+        user.id !== x.twisterId &&
+        this.players[user.id] !== undefined &&
+        VOTING_EMOJIS.indexOf(reaction.emoji.name) != -1;
 
-      const collector = sentMsg.createReactionCollector(filter_reaction, {
+      if (!x.showcaseMsg) {
+        console.error("Showcase message undefined!", x);
+        continue;
+      }
+
+      botEmojiReactPromises.push(react_in_order(x.showcaseMsg, VOTING_EMOJIS));
+      const collector = x.showcaseMsg.createReactionCollector(filter_reaction, {
         time: 100000,
       });
       collectors.push(collector);
 
-      let voteCount: number = 0;
       collector.on("collect", (reaction, user) => {
         console.log(`Collected ${reaction.emoji.name} from ${user.tag}`);
-        voteCount += 1;
-        const voteBuffoonId = this.profileEmojiToId[reaction.emoji.name];
-        if (!buffoonIdToVotes[voteBuffoonId]) {
-          buffoonIdToVotes[voteBuffoonId] = [];
+        if (!votesGivenToBuffoonsByVoterId[user.id]) {
+          votesGivenToBuffoonsByVoterId[user.id] = [];
         }
-        buffoonIdToVotes[voteBuffoonId].push(
-          this.players[x.twisterId].profileEmoji
-        );
-
-        if (voteCount === MAX_VOTES) {
-          collector.stop("User completed voting");
-        }
-      });
-
-      let resolveCallback;
-      const promise: Promise<null> = new Promise((res, _) => {
-        resolveCallback = res;
-      });
-      collectorEndPromises.push(promise);
-
-      collector.on("end", () => {
-        resolveCallback(null);
+        votesGivenToBuffoonsByVoterId[user.id].push(x.buffoonId);
       });
     }
 
     await Promise.all(botEmojiReactPromises);
-    const countdownMsgs = plays.map((x) =>
-      send_a_countdown(this.players[x.twisterId].botUser, VOTING_TIME_LIMIT)
+    send_a_countdown(this.mainChannel, VOTING_TIME_LIMIT);
+    await sleep((VOTING_TIME_LIMIT + 5) * 1000);
+    collectors.forEach((x) => x.stop("Time up"));
+
+    const votesReceivedByBuffoonId: { [id: string]: string[] } = plays.reduce(
+      (acc, curr) => {
+        acc[curr.buffoonId] = [];
+        return acc;
+      },
+      {}
     );
-    collectors.forEach((x) =>
-      x.resetTimer({ time: (VOTING_TIME_LIMIT + 5) * 1000 })
-    );
-    await Promise.all(collectorEndPromises);
-    countdownMsgs.forEach((x) => x());
+
+    Object.keys(votesGivenToBuffoonsByVoterId).forEach((voterId: string) => {
+      const votes = votesGivenToBuffoonsByVoterId[voterId];
+      for (let i = 0; i < MAX_VOTES && i < votes.length; i++) {
+        votesReceivedByBuffoonId[votes[i]].push(
+          this.players[voterId].profileEmoji
+        );
+      }
+    });
 
     return plays.map((x) => ({
       ...x,
-      votes: buffoonIdToVotes[x.buffoonId] ?? [],
+      votes: votesReceivedByBuffoonId[x.buffoonId],
     }));
   }
 
@@ -353,7 +346,7 @@ class Game {
         time: (timeLimit + 5) * 1000,
       });
       user.send(textReq.prompt.prompt);
-      const cancel_countdown = send_a_countdown(user, timeLimit);
+      const cancel_countdown = send_a_countdown(dmChannel, timeLimit);
       collector?.on("collect", (m: Discord.Message) => {
         console.log(`Collected ${m.content}, from ${user.username}`);
         const msg = remove_emojis(m.content).trim();

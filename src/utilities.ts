@@ -25,9 +25,12 @@ export async function react_in_order(
   return null;
 }
 
-export function send_a_countdown(user: Discord.User, time: number): () => void {
+export function send_a_countdown(
+  channel: Discord.TextChannel | Discord.DMChannel,
+  time: number
+): () => void {
   const secondsInterval = 5;
-  const msg = user.send(`Time left: ${time}s`);
+  const msg = channel.send(`Time left: ${time}s`);
   const interval = setInterval(async () => {
     time = time - secondsInterval;
     (await msg).edit(`Time left: ${time}s`);

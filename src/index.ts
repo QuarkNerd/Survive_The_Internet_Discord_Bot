@@ -5,7 +5,7 @@ import { get_joining_message, get_leaving_message } from "./messages";
 import { react_in_order } from "./utilities";
 import Game from "./game";
 
-const SIGN_UP_TIME_LIMIT = 30;
+const SIGN_UP_TIME_LIMIT = 60;
 
 DotEnv.config();
 const TOKEN = process.env.TOKEN;
