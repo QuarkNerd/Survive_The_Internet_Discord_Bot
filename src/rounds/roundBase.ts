@@ -30,10 +30,17 @@ interface Round {
 
 function defaultVerifyText(text: string): Verification {
   const maxLength = 100;
+  const minLength = 1;
   if (text.length > maxLength) {
     return {
       valid: false,
       detail: `Too long. Max Length: ${maxLength}. Current Length: ${text.length}`,
+    };
+  }
+  if (text.length < minLength) {
+    return {
+      valid: false,
+      detail: `Too short. Min Length: ${minLength}. Current Length: ${text.length}`,
     };
   }
   return { valid: true };

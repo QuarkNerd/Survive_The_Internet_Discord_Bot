@@ -152,15 +152,31 @@ class Game {
       const x = plays[i];
       const FAKE_ID = 0;
       const buffoonUsername = this.players[x.buffoonId].botUser.username;
+      if (!x.buffoonText || !x.twisterText) {
+        console.error("Text in play is undefined", x);
+        continue;
+      }
       const showcaseMsg = await this.mainChannel.send(
         round.get_result(
           buffoonUsername,
           FAKE_ID,
-          x.buffoonText as string,
+          x.buffoonText,
           this.players[x.buffoonId].profileEmoji,
-          x.twisterText as string
+          ""
         )
       );
+      await sleep(4000);
+
+      await showcaseMsg.edit(
+        round.get_result(
+          buffoonUsername,
+          FAKE_ID,
+          x.buffoonText,
+          this.players[x.buffoonId].profileEmoji,
+          x.twisterText
+        )
+      );
+      await sleep(4000);
       playsWithMessages.push({
         ...x,
         showcaseMsg,
