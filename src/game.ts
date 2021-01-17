@@ -346,15 +346,13 @@ class Game {
       if (prevScore !== score) {
         pos = i + 1;
       }
-      const fullStopsLen =
-        42 -
-        (username.length +
-          score.toString().length +
-          scoreChange.toString().length);
+      const fullStopsLen = 38 - (username.length + score.toString().length);
       const fillerFullStops = ".".repeat(fullStopsLen);
       const potentialGap = pos < 10 ? " " : "";
+      const scoreChangeGap = 5 - scoreChange.toString().length;
+      const fillerSpaceGap = " ".repeat(scoreChangeGap);
       scoreDisplay.push(
-        `${potentialGap}[${pos}] ${username}${fillerFullStops}${score} [+${scoreChange}]`
+        `${potentialGap}[${pos}] ${username}${fillerFullStops}${score} [+${fillerSpaceGap}${scoreChange}]`
       );
     }
     await this.mainChannel.send("```css\n" + scoreDisplay.join("\n") + "\n```");
