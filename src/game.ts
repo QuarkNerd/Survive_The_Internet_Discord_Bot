@@ -404,6 +404,7 @@ class Game {
       collector?.on("end", (_, reason) => {
         if (reason === "time") {
           onValidText(textReq.userId, textReq.prompt.default);
+          dmChannel.send("You ran out of time. Using default answer");
         }
       });
 
