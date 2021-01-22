@@ -8,6 +8,7 @@ import {
   send_a_countdown,
   sleep,
   remove_emojis,
+  convert_from_milliseconds,
 } from "./utilities";
 
 interface Player {
@@ -50,10 +51,12 @@ class Game {
   } = {};
   rounds: Round[];
   mainChannel: Discord.TextChannel;
+  timeStamp: number;
 
   constructor(mainChannel: Discord.TextChannel) {
     this.rounds = get_subsection_random_order(possibleRounds, 9);
     this.mainChannel = mainChannel;
+    this.timeStamp = Date.now();
   }
 
   start(players: Discord.User[]) {
@@ -67,6 +70,13 @@ class Game {
       };
     });
 
+    this.log(
+      "start",
+      players
+        .map((x, i) => `${x.id}-${x.username}-${profileEmojiList[i]}`)
+        .join(",")
+    );
+
     this.play();
   }
 
@@ -77,8 +87,10 @@ class Game {
   }
 
   async run_round(round: Round, num: number) {
-    // todo move these things into functions
+    this.log("run_round", `RoundName: ${round.name}`);
+
     this.mainChannel.send(`Round ${num + 1}: ${round.name}`);
+    // todo move these things into functions
     let playerIds = Object.keys(this.players);
     let plays: Play[] = get_subsection_random_order(
       playerIds,
@@ -91,6 +103,14 @@ class Game {
       };
     });
 
+    this.log(
+      "run_round",
+      `Plays beginning of round: ${JSON.stringify({
+        ...plays,
+        showcaseMsg: undefined,
+      })}`
+    );
+
     plays = await this.run_part_one(plays, round);
     plays = await this.run_part_two(plays, round);
     plays = await this.showcase_responses(plays, round);
@@ -99,9 +119,23 @@ class Game {
     const scoreIncrease = this.get_score_increase(plays);
     this.update_score(scoreIncrease);
     await this.display_score(scoreIncrease);
+    this.log(
+      "run_round",
+      `Plays end of round: ${JSON.stringify({
+        ...plays,
+        showcaseMsg: undefined,
+      })}`
+    );
+    this.log(
+      "run_round",
+      `Players end of round: ${Object.values(this.players)
+        .map((x) => `${x.botUser.username}:${x.score}`)
+        .join(",")}`
+    );
   }
 
   async run_part_one(plays: Play[], round: Round): Promise<Play[]> {
+    this.log("run_part_one", round.name);
     // store prompt id in play
     const textRequestList: TextRequest[] = plays.map((x) => ({
       userId: x.buffoonId,
@@ -122,6 +156,7 @@ class Game {
   }
 
   async run_part_two(plays: Play[], round: Round): Promise<Play[]> {
+    this.log("run_part_two", round.name);
     const textRequestList: TextRequest[] = plays.map((play, i) => ({
       userId: play.twisterId,
       user: this.players[play.twisterId].botUser,
@@ -145,15 +180,19 @@ class Game {
   }
 
   async showcase_responses(plays: Play[], round: Round): Promise<Play[]> {
+    this.log("showcase_responses", round.name);
     this.mainChannel.send("Let's see what you have come up with!");
     const playsWithMessages: Play[] = [];
     await sleep(4000);
     for (let i = 0; i < plays.length; i++) {
       const x = plays[i];
       const FAKE_ID = 0;
-      const buffoonUsername = this.players[x.buffoonId].botUser.username;
+      const buffoonUsername = this.get_name(x.buffoonId);
       if (!x.buffoonText || !x.twisterText) {
-        console.error("Text in play is undefined", x);
+        this.log(
+          "showcase_responses",
+          `Text in play is undefined ${JSON.stringify(x)}`
+        );
         continue;
       }
       const showcaseMsg = await this.mainChannel.send(
@@ -188,6 +227,7 @@ class Game {
   }
 
   async run_voting(plays: Play[]): Promise<Play[]> {
+    this.log("run_voting", "");
     const botEmojiReactPromises: Promise<null>[] = [];
     const collectors: Discord.ReactionCollector[] = [];
     const votesGivenToBuffoonsByVoterId: { [id: string]: string[] } = {};
@@ -204,7 +244,10 @@ class Game {
         VOTING_EMOJIS.indexOf(reaction.emoji.name) != -1;
 
       if (!x.showcaseMsg) {
-        console.error("Showcase message undefined!", x);
+        this.log(
+          "run_voting",
+          `Showcase message undefined! ${JSON.stringify(x)}`
+        );
         continue;
       }
 
@@ -215,7 +258,12 @@ class Game {
       collectors.push(collector);
 
       collector.on("collect", (reaction, user) => {
-        console.log(`Collected ${reaction.emoji.name} from ${user.tag}`);
+        this.log(
+          "run_voting",
+          `Collected ${reaction.emoji.name} from ${
+            user.tag
+          } on play by twister ${this.get_name(x.twisterId)}`
+        );
         if (!votesGivenToBuffoonsByVoterId[user.id]) {
           votesGivenToBuffoonsByVoterId[user.id] = [];
         }
@@ -244,6 +292,7 @@ class Game {
         );
       }
     });
+    this.log("run_voting", JSON.stringify(votesReceivedByBuffoonId));
 
     return plays.map((x) => ({
       ...x,
@@ -279,6 +328,7 @@ class Game {
         });
     }
 
+    this.log("get_score_increase", JSON.stringify(scoreIncrease));
     return scoreIncrease;
   }
 
@@ -289,6 +339,7 @@ class Game {
   }
 
   async display_votes_and_twister(plays: Play[]) {
+    this.log("display_votes_and_twister", "");
     const whoVotedMsg = await this.mainChannel.send(
       "Let's see who voted for what"
     );
@@ -316,7 +367,7 @@ class Game {
           oldContent.substring(0, oldContent.length - 3) +
           "\n     Burned By:\n     " +
           this.players[x.twisterId].profileEmoji +
-          this.players[x.twisterId].botUser.username +
+          this.get_name(x.twisterId) +
           "```\n\n";
         x.showcaseMsg.edit(newContent);
       })
@@ -326,15 +377,17 @@ class Game {
   }
 
   async display_score(scoreIncrease: { [id: string]: number }) {
+    this.log("display_score", "");
     await sleep(5000);
-    const sortedScores: [string, number, number][] = Object.entries(
+    const sortedScores: [string, string, number, number][] = Object.entries(
       this.players
     )
-      .map(([_, { score, botUser }]): [string, number, number] => [
-        botUser.username,
-        score,
-        scoreIncrease[botUser.id],
-      ])
+      .map(([_, { profileEmoji, score, botUser }]): [
+        string,
+        string,
+        number,
+        number
+      ] => [botUser.username, profileEmoji, score, scoreIncrease[botUser.id]])
       .sort((a, b) => (a[1] < b[1] ? 1 : -1));
 
     let scoreDisplay: string[] = [];
@@ -342,17 +395,17 @@ class Game {
     let prevScore = undefined;
 
     for (let i = 0; i < sortedScores.length; i++) {
-      const [username, score, scoreChange] = sortedScores[i];
+      const [username, profileEmoji, score, scoreChange] = sortedScores[i];
       if (prevScore !== score) {
         pos = i + 1;
       }
-      const fullStopsLen = 38 - (username.length + score.toString().length);
+      const fullStopsLen = 34 - (username.length + score.toString().length);
       const fillerFullStops = ".".repeat(fullStopsLen);
       const potentialGap = pos < 10 ? " " : "";
       const scoreChangeGap = 5 - scoreChange.toString().length;
       const fillerSpaceGap = " ".repeat(scoreChangeGap);
       scoreDisplay.push(
-        `${potentialGap}[${pos}] ${username}${fillerFullStops}${score} [+${fillerSpaceGap}${scoreChange}]`
+        `${potentialGap}[${pos}] ${profileEmoji} ${username}${fillerFullStops}${score} [+${fillerSpaceGap}${scoreChange}]`
       );
     }
     await this.mainChannel.send("```css\n" + scoreDisplay.join("\n") + "\n```");
@@ -386,17 +439,20 @@ class Game {
       user.send(textReq.prompt.prompt);
       const cancel_countdown = send_a_countdown(dmChannel, timeLimit);
       collector?.on("collect", (m: Discord.Message) => {
-        console.log(`Collected ${m.content}, from ${user.username}`);
+        this.log("run_part", `Collected ${m.content}, from ${user.username}`);
+
         const msg = remove_emojis(m.content).trim();
         const verification = verify(textReq.prompt.id, msg);
 
         if (verification.valid) {
           onValidText(textReq.userId, msg);
           m.react("✔️");
+          this.log("run_part", `Accepted ${m.content}, from ${user.username}`);
           cancel_countdown();
           collector.stop("Response Received");
         } else {
           m.react("❌");
+          this.log("run_part", `Rejected ${m.content}, from ${user.username}`);
           user.send(verification.detail);
         }
       });
@@ -405,11 +461,13 @@ class Game {
         if (reason === "time") {
           onValidText(textReq.userId, textReq.prompt.default);
           dmChannel.send("You ran out of time. Using default answer");
+          this.log("run_part", `Timed out ${user.username}`);
         }
       });
 
       if (!collector) {
-        console.error(
+        this.log(
+          "run_part",
           `collector is undefined, and playerId is ${user.username}`
         );
       }
@@ -418,6 +476,18 @@ class Game {
     return new Promise((res, _) => {
       resolveCallback = res;
     });
+  }
+
+  get_name(id: string): string {
+    return this.players[id].botUser.username;
+  }
+
+  log(funcName: string, details: string) {
+    console.log(
+      `${this.timeStamp}|${funcName}|${details}|${convert_from_milliseconds(
+        Date.now() - this.timeStamp
+      )}`
+    );
   }
 }
 
