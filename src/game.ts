@@ -52,11 +52,13 @@ class Game {
   rounds: Round[];
   mainChannel: Discord.TextChannel;
   timeStamp: number;
+  endFunction: () => any;
 
-  constructor(mainChannel: Discord.TextChannel) {
-    this.rounds = get_subsection_random_order(possibleRounds, 9);
+  constructor(mainChannel: Discord.TextChannel, endFunction: () => any) {
+    this.rounds = get_subsection_random_order(possibleRounds, 5);
     this.mainChannel = mainChannel;
     this.timeStamp = Date.now();
+    this.endFunction = endFunction;
   }
 
   start(players: Discord.User[]) {
@@ -84,10 +86,13 @@ class Game {
     for (let i = 0; i < this.rounds.length; i++) {
       await this.run_round(this.rounds[i], i);
     }
+    this.mainChannel.send("game over");
+    this.log("play", "Game over");
+    this.endFunction();
   }
 
   async run_round(round: Round, num: number) {
-    this.log("run_round", `RoundName: ${round.name}`);
+    this.log("run_round", `RoundName: ${round.name}\n${round.description}`);
 
     this.mainChannel.send(`Round ${num + 1}: ${round.name}`);
     // todo move these things into functions
@@ -388,7 +393,7 @@ class Game {
         number,
         number
       ] => [botUser.username, profileEmoji, score, scoreIncrease[botUser.id]])
-      .sort((a, b) => (a[1] < b[1] ? 1 : -1));
+      .sort((a, b) => (a[2] < b[2] ? 1 : -1));
 
     let scoreDisplay: string[] = [];
     let pos = 0;

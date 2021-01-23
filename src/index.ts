@@ -1,4 +1,4 @@
-import Discord from "discord.js";
+import Discord, { MessageAttachment } from "discord.js";
 import DotEnv from "dotenv";
 
 import { get_joining_message, get_leaving_message } from "./messages";
@@ -17,7 +17,7 @@ enum SignUpEnd {
   Time = "time",
 }
 
-let game: Game | null;
+const games: { [textId: string]: Game } = {};
 let players: Discord.User[] = [];
 
 BOT.login(TOKEN);
@@ -34,7 +34,9 @@ BOT.on("message", (msg) => {
 });
 
 function handle_text_channel_msg(m: Discord.Message) {
-  console.log(`Collected ${m.content}, from ${m.author.username} in ${m.channel.id}`);
+  console.log(
+    `Collected ${m.content}, from ${m.author.username} in ${m.channel.id}`
+  );
   if (!m.content.startsWith("!survive ")) return;
   const command = m.content.split(" ");
 
@@ -44,12 +46,16 @@ function handle_text_channel_msg(m: Discord.Message) {
 }
 
 async function new_game_command(msg: Discord.Message): Promise<any> {
-  if (game) {
+  if (games[msg.channel.id]) {
     msg.channel.send("I can't play multiple games at the same time");
     return;
   } else {
-    game = new Game(msg.channel as Discord.TextChannel);
-    let letsGoMsg = await msg.channel.send("Let's go");
+    const game = new Game(
+      msg.channel as Discord.TextChannel,
+      () => delete games[msg.channel.id]
+    );
+    games[msg.channel.id] = game;
+    const letsGoMsg = await msg.channel.send("Let's go");
 
     const collector = letsGoMsg.createReactionCollector(
       filter_sign_up_reaction,
@@ -97,13 +103,13 @@ async function new_game_command(msg: Discord.Message): Promise<any> {
           game?.start(players);
           break;
         case SignUpEnd.Cancelled:
-          game = null;
+          delete games[msg.channel.id];
           msg.channel.send(
             "The game was cancelled because someone clicked the ❌"
           );
           break;
         case SignUpEnd.Time:
-          game = null;
+          delete games[msg.channel.id];
           msg.channel.send("The game was cancelled because time ran out");
           break;
         default:
