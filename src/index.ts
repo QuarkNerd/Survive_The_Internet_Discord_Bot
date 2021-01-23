@@ -30,15 +30,11 @@ BOT.on("message", (msg) => {
   if (msg.author.bot) return;
   if (msg.channel.type == "text") {
     handle_text_channel_msg(msg);
-  } else if (msg.channel.type == "dm") {
-    handle_dm(msg);
   }
 });
 
-function handle_dm(msg: Discord.Message): void {}
-
 function handle_text_channel_msg(m: Discord.Message) {
-  console.log(`Collected ${m.content}, from ${m.author.username}`);
+  console.log(`Collected ${m.content}, from ${m.author.username} in ${m.channel.id}`);
   if (!m.content.startsWith("!survive ")) return;
   const command = m.content.split(" ");
 

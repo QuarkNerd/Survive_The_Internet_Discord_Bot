@@ -8,7 +8,7 @@ import {
   send_a_countdown,
   sleep,
   remove_emojis,
-  convert_from_milliseconds,
+  log,
 } from "./utilities";
 
 interface Player {
@@ -483,11 +483,7 @@ class Game {
   }
 
   log(funcName: string, details: string) {
-    console.log(
-      `${this.timeStamp}|${funcName}|${details}|${convert_from_milliseconds(
-        Date.now() - this.timeStamp
-      )}`
-    );
+    log(["INGAME", this.timeStamp.toString(), funcName, details]);
   }
 }
 

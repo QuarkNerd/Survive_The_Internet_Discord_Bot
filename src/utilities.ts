@@ -97,23 +97,9 @@ export function remove_emojis(string: string): string {
   return string.replace(regex, "");
 }
 
-export function convert_from_milliseconds(ms: number): string {
-  let s = ms / 1000;
-
-  if (s < 60) {
-    return `${s.toFixed(3)}s`;
-  }
-  let m = Math.floor(s / 60);
-  s = s % 60;
-
-  if (m < 60) {
-    return `${m}m ${s.toFixed(3)}s`;
-  }
-
-  let h = Math.floor(m / 60);
-  m = m % 60;
-
-  return `${h}h ${m}m ${s.toFixed(3)}s`;
+export function log(msgs: string[]) {
+  const text = msgs.map((msg) => msg.replace(/||/g, "")).join("||");
+  console.log(`${Date.now()}||${text}}||`);
 }
 
 function generate_n_random_numbers(
