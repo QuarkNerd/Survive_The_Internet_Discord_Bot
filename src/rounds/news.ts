@@ -7,7 +7,7 @@ import { create_comment } from "./utilities";
 const News: Round = {
   ...defaultValues,
   name: "News",
-  description: "Answer the prompt",
+  description: "Look at that headline!",
   twisterPrompt: "Would look awful under the headline",
   possible_buffoon_prompts: basePrompts,
   possible_filler_twister_texts: newsDefaultTwists,

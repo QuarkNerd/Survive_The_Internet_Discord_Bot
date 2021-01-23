@@ -6,7 +6,7 @@ import { split_to_fit_width } from "../utilities";
 const JobNetwork: Round = {
   ...defaultValues,
   name: "Job Network",
-  description: "Answer the prompt",
+  description: "Can you recommend me?",
   twisterPrompt: "Would be a bad way to recommend this person",
   possible_buffoon_prompts: jobNetworkPrompts,
   possible_filler_twister_texts: jobNetworkDefaultTwists,

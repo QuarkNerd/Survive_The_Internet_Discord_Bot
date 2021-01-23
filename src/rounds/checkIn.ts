@@ -6,7 +6,7 @@ import { split_to_fit_width } from "../utilities";
 const CheckIn: Round = {
   ...defaultValues,
   name: "Check in",
-  description: "Answer the prompt",
+  description: "Share your location",
   twisterPrompt: "Would look silly if said while checking into this location",
   possible_buffoon_prompts: basePrompts,
   possible_filler_twister_texts: checkInDefaultTwists,

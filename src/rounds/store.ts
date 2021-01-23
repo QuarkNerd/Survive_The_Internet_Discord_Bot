@@ -7,7 +7,7 @@ import { create_comment } from "./utilities";
 const Store: Round = {
   ...defaultValues,
   name: "Store",
-  description: "Answer the prompt",
+  description: "Buy all the things",
   twisterPrompt: "Would be an awful review for the product",
   possible_buffoon_prompts: storePrompts,
   possible_filler_twister_texts: storeDefaultTwists,

@@ -6,7 +6,7 @@ import { split_to_fit_width } from "../utilities";
 const SocialMedia: Round = {
   ...defaultValues,
   name: "Social Media",
-  description: "Answer the prompt",
+  description: "#Hashtag",
   twisterPrompt: "Would look ridiculous with the hashtag:",
   possible_buffoon_prompts: basePrompts,
   possible_filler_twister_texts: socialMediaDefaultTwists,

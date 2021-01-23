@@ -7,9 +7,9 @@ import { create_comment } from "./utilities";
 const Crowdfunding: Round = {
   ...defaultValues,
   name: "Crowdfunding",
-  description: "Answer the prompt",
+  description: "Fund me now",
   twisterPrompt:
-    "Would look terrible if it was in response to campaign titled:",
+    "Would look terrible if it was in response to crowdfunding campaign titled:",
   possible_buffoon_prompts: basePrompts,
   possible_filler_twister_texts: crowdFundingDefaultTwists,
   get_result: (
