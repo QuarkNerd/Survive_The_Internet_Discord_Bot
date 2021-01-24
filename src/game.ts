@@ -36,6 +36,7 @@ interface TextRequest {
 //TODO customiseable
 const MAX_VOTES = 3;
 const VOTING_EMOJIS = ["🌕", "🌖", "🌗", "🌘", "🌑"]; //, "🌒", "🌓", "🌔"];
+const MAX_PLAYERS = 10;
 
 const PART_ONE_TIME_LIMIT = 60;
 const PART_TWO_TIME_LIMIT = 75;
@@ -53,6 +54,7 @@ class Game {
   mainChannel: Discord.TextChannel;
   timeStamp: number;
   endFunction: () => any;
+  static maxPlayers: number = MAX_PLAYERS;
 
   constructor(mainChannel: Discord.TextChannel, endFunction: () => any) {
     this.rounds = get_subsection_random_order(possibleRounds, 5);

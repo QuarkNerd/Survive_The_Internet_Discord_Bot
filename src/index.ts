@@ -71,7 +71,13 @@ async function new_game_command(msg: Discord.Message): Promise<any> {
 
       switch (reaction.emoji.name) {
         case "✔":
-          collector.stop(SignUpEnd.GameStarted);
+          if (players.length <= Game.maxPlayers) {
+            collector.stop(SignUpEnd.GameStarted);
+            break;
+          }
+          msg.channel.send(
+            `Sorry, can't start the game. The maximum number of players is ${Game.maxPlayers}`
+          );
           break;
         case "👍":
           msg.channel.send(get_joining_message(user.username));
