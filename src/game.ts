@@ -61,9 +61,11 @@ class Game {
     this.mainChannel = mainChannel;
     this.timeStamp = Date.now();
     this.endFunction = endFunction;
+    this.log("constructor", `Game created in ${this.mainChannel.id}`);
   }
 
-  start(players: Discord.User[]) {
+  async play(players: Discord.User[]) {
+    this.mainChannel.send(`Your game id is ${this.mainChannel.id}`);
     const profileEmojiList = get_identity_emojis(players.length);
 
     players.forEach((player, i) => {
@@ -75,20 +77,16 @@ class Game {
     });
 
     this.log(
-      "start",
+      "play",
       players
         .map((x, i) => `${x.id}-${x.username}-${profileEmojiList[i]}`)
         .join(",")
     );
 
-    this.play();
-  }
-
-  async play() {
     for (let i = 0; i < this.rounds.length; i++) {
       await this.run_round(this.rounds[i], i);
     }
-    this.mainChannel.send("game over");
+    this.mainChannel.send("Game over");
     this.log("play", "Game over");
     this.endFunction();
   }
@@ -490,7 +488,7 @@ class Game {
   }
 
   log(funcName: string, details: string) {
-    log(["INGAME", this.timeStamp.toString(), funcName, details]);
+    log(["IN_GAME", this.timeStamp.toString(), funcName, details]);
   }
 }
 

@@ -2,14 +2,14 @@ import Discord, { MessageAttachment } from "discord.js";
 import DotEnv from "dotenv";
 
 import { get_joining_message, get_leaving_message } from "./messages";
-import { react_in_order } from "./utilities";
+import { react_in_order, log } from "./utilities";
 import Game from "./game";
 
 const SIGN_UP_TIME_LIMIT = 60;
 
 DotEnv.config();
 const TOKEN = process.env.TOKEN;
-const BOT = new Discord.Client();
+const BOT: Discord.Client = new Discord.Client();
 
 enum SignUpEnd {
   GameStarted = "start",
@@ -23,20 +23,21 @@ let players: Discord.User[] = [];
 BOT.login(TOKEN);
 
 BOT.on("ready", () => {
-  console.info(`Logged in as ${BOT?.user?.tag}!`);
+  log(["BOT_LOGIN", `Logged in as ${BOT.user?.tag}!`]);
 });
 
 BOT.on("message", (msg) => {
   if (msg.author.bot) return;
-  if (msg.channel.type == "text") {
+  if (msg.channel.type === "text") {
     handle_text_channel_msg(msg);
   }
 });
 
 function handle_text_channel_msg(m: Discord.Message) {
-  console.log(
-    `Collected ${m.content}, from ${m.author.username} in ${m.channel.id}`
-  );
+  log([
+    "MESSAGE",
+    `Collected ${m.content}, from ${m.author.username} in ${m.channel.id}`,
+  ]);
   if (!m.content.startsWith("!survive ")) return;
   const command = m.content.split(" ");
 
@@ -67,7 +68,11 @@ async function new_game_command(msg: Discord.Message): Promise<any> {
 
     react_in_order(letsGoMsg, ["✔", "👍", "❌"]);
     collector.on("collect", (reaction, user) => {
-      console.log(`Collected ${reaction.emoji.name} from ${user.tag}`);
+      log([
+        "SIGN_UP",
+        msg.channel.id,
+        `Collected ${reaction.emoji.name} from ${user.tag}`,
+      ]);
 
       switch (reaction.emoji.name) {
         case "✔":
@@ -90,9 +95,11 @@ async function new_game_command(msg: Discord.Message): Promise<any> {
     });
 
     collector.on("remove", (reaction, user) => {
-      console.log(
-        `Collected removal of ${reaction.emoji.name} from ${user.tag}`
-      );
+      log([
+        "SIGN_UP",
+        msg.channel.id,
+        `Collected removal of ${reaction.emoji.name} from ${user.tag}`,
+      ]);
 
       if (reaction.emoji.name === "👍") {
         msg.channel.send(get_leaving_message(user.username));
@@ -101,12 +108,17 @@ async function new_game_command(msg: Discord.Message): Promise<any> {
     });
 
     collector.on("end", (_, reason) => {
+      log(["SIGN_UP", msg.channel.id, "Collector ended ", reason]);
       switch (reason) {
         case SignUpEnd.GameStarted:
           msg.channel.send(
             "The game will start now. Make sure server members can DM you"
           );
-          game?.start(players);
+          game?.play(players).catch((err: Error) => {
+            log(["GAME_ERROR", "Error occurred", err.message]);
+            msg.channel.send("An unexpected error occurred. Please try again");
+            delete games[msg.channel.id];
+          });
           break;
         case SignUpEnd.Cancelled:
           delete games[msg.channel.id];
@@ -118,8 +130,6 @@ async function new_game_command(msg: Discord.Message): Promise<any> {
           delete games[msg.channel.id];
           msg.channel.send("The game was cancelled because time ran out");
           break;
-        default:
-          console.error("Unexpected reason to end collector: ", reason);
       }
     });
   }
