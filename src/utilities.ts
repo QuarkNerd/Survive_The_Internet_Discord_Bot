@@ -99,7 +99,7 @@ export function remove_emojis(string: string): string {
 
 export function log(msgs: string[]) {
   const text = msgs.map((msg) => msg.replace(/||/g, "")).join("||");
-  console.log(`${Date.now()}||${text}}||`);
+  console.log(`${Date.now()}||${text}||`);
 }
 
 function generate_n_random_numbers(

@@ -41,18 +41,22 @@ function handle_text_channel_msg(m: Discord.Message) {
   if (!m.content.startsWith("!survive ")) return;
   const command = m.content.split(" ");
 
-  if (command[1] == "ng") {
-    new_game_command(m);
+  if (command[1] === "ng") {
+    new_game_command(m, command.length > 2 ? command[2] : "");
   }
 }
 
-async function new_game_command(msg: Discord.Message): Promise<any> {
+async function new_game_command(
+  msg: Discord.Message,
+  customisation: string
+): Promise<any> {
   if (games[msg.channel.id]) {
     msg.channel.send("I can't play multiple games at the same time");
     return;
   } else {
     const game = new Game(
       msg.channel as Discord.TextChannel,
+      customisation,
       () => delete games[msg.channel.id]
     );
     games[msg.channel.id] = game;

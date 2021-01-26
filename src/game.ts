@@ -33,20 +33,29 @@ interface TextRequest {
   prompt: Prompt;
 }
 
-//TODO customiseable
-const MAX_VOTES = 3;
 const VOTING_EMOJIS = ["🌕", "🌖", "🌗", "🌘", "🌑"]; //, "🌒", "🌓", "🌔"];
 const MAX_PLAYERS = 10;
 
-const PART_ONE_TIME_LIMIT = 60;
-const PART_TWO_TIME_LIMIT = 75;
-const VOTING_TIME_LIMIT = 40;
+// Customisable
+const DEFAULT_GAME_VALUES = {
+  max_votes: 3,
+  part_one_time_limit: 60,
+  part_two_time_limit: 75,
+  voting_time_limit: 40,
+};
 
 const TWISTER_VOTE_SCORE = 100;
 const BUFFOON_VOTE_SCORE = 10;
 const MOST_VOTES_MULTIPLIER = 1.5;
 
 class Game {
+  static maxPlayers: number = MAX_PLAYERS;
+
+  max_votes: number;
+  part_one_time_limit: number;
+  part_two_time_limit: number;
+  voting_time_limit: number;
+
   players: {
     [userId: string]: Player;
   } = {};
@@ -54,14 +63,34 @@ class Game {
   mainChannel: Discord.TextChannel;
   timeStamp: number;
   endFunction: () => any;
-  static maxPlayers: number = MAX_PLAYERS;
 
-  constructor(mainChannel: Discord.TextChannel, endFunction: () => any) {
+  constructor(
+    mainChannel: Discord.TextChannel,
+    customisations: string,
+    endFunction: () => any
+  ) {
     this.rounds = get_subsection_random_order(possibleRounds, 5);
     this.mainChannel = mainChannel;
     this.timeStamp = Date.now();
     this.endFunction = endFunction;
     this.log("constructor", `Game created in ${this.mainChannel.id}`);
+
+    const customisations_list = customisations.split("-");
+
+    [
+      "max_votes",
+      "part_one_time_limit",
+      "part_two_time_limit",
+      "voting_time_limit",
+    ].forEach((x, i) => {
+      if (customisations_list.length > i) {
+        const newValue = parseInt(customisations_list[i]);
+        this[x] =
+          newValue !== NaN && newValue > 0 ? newValue : DEFAULT_GAME_VALUES[x];
+      } else {
+        this[x] = DEFAULT_GAME_VALUES[x];
+      }
+    });
   }
 
   async play(players: Discord.User[]) {
@@ -151,7 +180,7 @@ class Game {
     const texts = await this.run_part(
       textRequestList,
       round.verify_buffoon_text,
-      PART_ONE_TIME_LIMIT
+      this.part_one_time_limit
     );
 
     return plays.map((x) => ({
@@ -175,7 +204,7 @@ class Game {
     const texts = await this.run_part(
       textRequestList,
       (_: number, text: string) => round.verify_twister_text(text),
-      PART_TWO_TIME_LIMIT
+      this.part_two_time_limit
     );
 
     return plays.map((x) => ({
@@ -277,8 +306,8 @@ class Game {
     }
 
     await Promise.all(botEmojiReactPromises);
-    send_a_countdown(this.mainChannel, VOTING_TIME_LIMIT);
-    await sleep((VOTING_TIME_LIMIT + 5) * 1000);
+    send_a_countdown(this.mainChannel, this.voting_time_limit);
+    await sleep((this.voting_time_limit + 5) * 1000);
     collectors.forEach((x) => x.stop("Time up"));
 
     const votesReceivedByBuffoonId: { [id: string]: string[] } = plays.reduce(
@@ -291,7 +320,7 @@ class Game {
 
     Object.keys(votesGivenToBuffoonsByVoterId).forEach((voterId: string) => {
       const votes = votesGivenToBuffoonsByVoterId[voterId];
-      for (let i = 0; i < MAX_VOTES && i < votes.length; i++) {
+      for (let i = 0; i < this.max_votes && i < votes.length; i++) {
         votesReceivedByBuffoonId[votes[i]].push(
           this.players[voterId].profileEmoji
         );
