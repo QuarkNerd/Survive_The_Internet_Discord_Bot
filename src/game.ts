@@ -115,8 +115,8 @@ class Game {
     for (let i = 0; i < this.rounds.length; i++) {
       await this.run_round(this.rounds[i], i);
     }
-    this.mainChannel.send("Game over");
-    this.log("play", "Game over");
+    this.mainChannel.send("Game Over");
+    this.log("play", "Game Over");
     this.endFunction();
   }
 
@@ -137,13 +137,7 @@ class Game {
       };
     });
 
-    this.log(
-      "run_round",
-      `Plays beginning of round: ${JSON.stringify({
-        ...plays,
-        showcaseMsg: undefined,
-      })}`
-    );
+    this.log("run_round", `Plays beginning of round: ${JSON.stringify(plays)}`);
 
     plays = await this.run_part_one(plays, round);
     plays = await this.run_part_two(plays, round);
@@ -155,10 +149,9 @@ class Game {
     await this.display_score(scoreIncrease);
     this.log(
       "run_round",
-      `Plays end of round: ${JSON.stringify({
-        ...plays,
-        showcaseMsg: undefined,
-      })}`
+      `Plays end of round: ${JSON.stringify(
+        plays.map((x) => ({ ...x, showcaseMsg: undefined }))
+      )}`
     );
     this.log(
       "run_round",
@@ -446,6 +439,12 @@ class Game {
     await sleep(5000);
   }
 
+  end_game_early() {
+    this.mainChannel.send("Game Ended Early");
+    this.log("play", "Game Ended Early");
+    this.endFunction();
+  }
+
   async run_part(
     textRequestList: TextRequest[],
     verify: (prompt_id: number, text: string) => Verification,
@@ -471,11 +470,15 @@ class Game {
         time: (timeLimit + 5) * 1000,
       });
       user.send(textReq.prompt.prompt);
+      this.log(
+        "run_part",
+        `Sent ${textReq.prompt.prompt}, to ${user.username}`
+      );
       const cancel_countdown = send_a_countdown(dmChannel, timeLimit);
       collector?.on("collect", (m: Discord.Message) => {
         this.log("run_part", `Collected ${m.content}, from ${user.username}`);
 
-        const msg = remove_emojis(m.content).trim();
+        const msg = remove_emojis(m.content).replace(/`/g, "").trim();
         const verification = verify(textReq.prompt.id, msg);
 
         if (verification.valid) {

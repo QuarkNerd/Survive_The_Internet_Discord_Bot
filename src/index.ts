@@ -43,6 +43,8 @@ function handle_text_channel_msg(m: Discord.Message) {
 
   if (command[1] === "ng") {
     new_game_command(m, command.length > 2 ? command[2] : "");
+  } else if (command[1] === "end") {
+    end_game_command(m);
   }
 }
 
@@ -137,6 +139,10 @@ async function new_game_command(
       }
     });
   }
+}
+
+function end_game_command(msg: Discord.Message) {
+  games[msg.channel.id].end_game_early();
 }
 
 function filter_sign_up_reaction(
