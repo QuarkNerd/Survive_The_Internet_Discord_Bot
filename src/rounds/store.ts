@@ -20,7 +20,7 @@ const Store: Round = {
   ) =>
     "```diff\n" +
     "_____________________________________________\n" +
-    "  BEZOS IS A BITCH    ⬜⬜⬜⬜⬜🔎  🛒\n" +
+    "--- BEZOS IS A BITCH  ⬜⬜⬜⬜⬜🔎  🛒\n" +
     "--------------------------------------------\n+   " +
     split_to_fit_width(twisterText, 41, 4).join("\n+   ") +
     "\n--- ⭐⭐☆☆☆                 Qty: 1 🔽 🛍️\n" +

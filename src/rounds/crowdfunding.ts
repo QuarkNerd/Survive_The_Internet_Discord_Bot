@@ -21,7 +21,7 @@ const Crowdfunding: Round = {
   ) =>
     "```diff\n" +
     "_____________________________________________\n" +
-    "     £ £ £ FUND STUFF 4 REASONS £ £ £     \n" +
+    "---  £ £ £ FUND STUFF 4 REASONS £ £ £     \n" +
     "--------------------------------------------\n+ " +
     split_to_fit_width(twisterText, 43, 4).join("\n+ ") +
     "\n--------------------------------------------\n" +

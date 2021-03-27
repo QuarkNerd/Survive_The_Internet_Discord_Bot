@@ -20,7 +20,7 @@ const Forum: Round = {
   ) =>
     "```diff\n" +
     "_____________________________________________\n" +
-    " ? STICK YOUR NOSE WHERE IT DON'T BELONG ?\n" +
+    "---?STICK YOUR NOSE WHERE IT DON'T BELONG?\n" +
     "--------------------------------------------\n+ " +
     split_to_fit_width(
       twisterText + (twisterText[twisterText.length - 1] === "?" ? "" : "?"),
