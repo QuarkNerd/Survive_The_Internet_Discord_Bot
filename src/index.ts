@@ -1,7 +1,11 @@
-import Discord, { MessageAttachment } from "discord.js";
+import Discord from "discord.js";
 import DotEnv from "dotenv";
 
-import { get_joining_message, get_leaving_message } from "./messages";
+import {
+  get_joining_message,
+  get_leaving_message,
+  helpMessage,
+} from "./messages";
 import { react_in_order, log } from "./utilities";
 import Game from "./game";
 
@@ -41,10 +45,16 @@ function handle_text_channel_msg(m: Discord.Message) {
   if (!m.content.startsWith("!survive ")) return;
   const command = m.content.split(" ");
 
-  if (command[1] === "ng") {
-    new_game_command(m, command.length > 2 ? command[2] : "");
-  } else if (command[1] === "end") {
-    end_game_command(m);
+  switch (command[1]) {
+    case "ng":
+      new_game_command(m, command.length > 2 ? command[2] : "");
+      break;
+    case "end":
+      end_game_command(m);
+      break;
+    case "help":
+      help_command(m);
+      break;
   }
 }
 
@@ -62,7 +72,9 @@ async function new_game_command(
       () => delete games[msg.channel.id]
     );
     games[msg.channel.id] = game;
-    const letsGoMsg = await msg.channel.send("Let's go");
+    const letsGoMsg = await msg.channel.send(
+      "Let's go. Like this message to play. Tick react to start. Cross react to cancel game"
+    );
 
     const collector = letsGoMsg.createReactionCollector(
       filter_sign_up_reaction,
@@ -139,6 +151,10 @@ async function new_game_command(
       }
     });
   }
+}
+
+function help_command(msg: Discord.Message) {
+  msg.channel.send(helpMessage);
 }
 
 function end_game_command(msg: Discord.Message) {

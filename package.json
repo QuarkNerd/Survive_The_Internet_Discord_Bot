@@ -1,7 +1,7 @@
 {
-  "name": "discord-bot",
+  "name": "Survive_On_The_Web",
   "version": "1.0.0",
-  "description": "Discord bot for SitePoint",
+  "description": "Discord bot game",
   "main": "index.js",
   "scripts": {
     "start": "tsc && node dist/src/index.js",
